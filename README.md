@@ -1,3 +1,27 @@
+## NLP
+
+《基于神经网络模型的自然语言处理》（小学一年级~上册）(Yoav Goldberg)
+
+http://u.cs.biu.ac.il/~yogo/nnlp.pdf 
+
+自然语言处理权威指南(monkeylearn.com)
+
+https://monkeylearn.com/blog/the-definitive-guide-to-natural-language-processing/
+
+自然语言处理入门(algorithmia.com)
+
+https://blog.algorithmia.com/introduction-natural-language-processing-nlp/
+
+自然语言处理教程 (vikparuchuri.com)
+
+http://www.vikparuchuri.com/blog/natural-language-processing-tutorial/
+
+Natural Language Processing (almost) from Scratch (arxiv.org)
+
+初高中生课程：自然语言处理 (arxiv.org)
+
+https://arxiv.org/pdf/1103.0398.pdf  
+
 ## 深度学习和 NLP
 
 基于深度学习的NLP应用(arxiv.org)
