@@ -1,5 +1,7 @@
 ## NLP
 
+regular expressions, text normalization, string similarity, language models, vector semantics, embeddings, and more to turn raw data into data products.
+
 《基于神经网络模型的自然语言处理》（小学一年级~上册）(Yoav Goldberg)
 
 http://u.cs.biu.ac.il/~yogo/nnlp.pdf 
