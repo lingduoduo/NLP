@@ -1,13 +1,19 @@
 ## NLP
 
-regular expressions
-text normalization
-string similarity
-language models
-vector semantics
-embeddings
+- regular expressions
 
-《基于神经网络模型的自然语言处理》(Yoav Goldberg)
+- text normalization
+
+- string similarity
+
+- language models
+
+- vector semantics
+
+- embeddings
+
+
+(Yoav Goldberg)
 
 http://u.cs.biu.ac.il/~yogo/nnlp.pdf 
 
