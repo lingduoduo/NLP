@@ -17,7 +17,6 @@ __pycache__/
 *.zip
 *.pt
 *.pth
-*.png
 *.csv
 *.pkl
 
