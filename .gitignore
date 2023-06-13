@@ -18,7 +18,6 @@ __pycache__/
 *.pt
 *.pth
 *.png
-*.json
 *.csv
 *.pkl
 
