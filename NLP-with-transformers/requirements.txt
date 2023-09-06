@@ -1,5 +1,5 @@
 # Base requirements
-transformers[tf,torch,sentencepiece,vision,optuna,sklearn,onnxruntime]==4.16.2
+transformers[tf,torch,sentencepiece,vision,optuna,sklearn,onnxruntime]==4.30.0
 datasets[audio]==1.16.1
 matplotlib
 ipywidgets
@@ -19,4 +19,6 @@ nlpaug==1.1.7
 scikit-multilearn==0.2.0
 # Chapter 10 - Pretraining
 psutil
-accelerate==0.5.1
+accelerate==0.20.2
+tensorflow
+tensorflow-cpu
