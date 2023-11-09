@@ -110,3 +110,7 @@ pip-delete-this-directory.txt
 .DS_Store
 
 attention/attention/data/processed_reviews
+*.txt
+*.csv
+runs/
+snips_clf/
