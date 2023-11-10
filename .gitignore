@@ -114,3 +114,4 @@ attention/attention/data/processed_reviews
 *.csv
 runs/
 snips_clf/
+NLP-Trransformer-Models/qa/
