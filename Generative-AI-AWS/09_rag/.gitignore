@@ -1,0 +1,4 @@
+data/
+dependencies/
+`.ipynb_checkpoints/
+__pycache__/
