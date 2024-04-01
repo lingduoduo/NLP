@@ -62,13 +62,7 @@ def get_trulens_recorder(query_engine, feedbacks, app_id):
     )
     return tru_recorder
 
-def get_prebuilt_trulens_recorder(query_engine, app_id):
-    tru_recorder = TruLlama(
-        query_engine,
-        app_id=app_id,
-        feedbacks=feedbacks
-        )
-    return tru_recorder
+
 
 from llama_index import ServiceContext, VectorStoreIndex, StorageContext
 from llama_index.node_parser import SentenceWindowNodeParser
