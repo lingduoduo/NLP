@@ -3,6 +3,7 @@ notebook/document/
 */.ipynb_checkpoints/*
 data
 */data/*
+LLM-RAG-Recommendation/storage/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
