@@ -1,4 +1,6 @@
 notebook/document/
+.idea/
+.idea/notebook/document/
 .ipynb_checkpoints
 */.ipynb_checkpoints/*
 data
