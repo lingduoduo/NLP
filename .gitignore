@@ -6,6 +6,7 @@ notebook/document/
 data
 */data/*
 LLM-RAG-Recommendation/storage/
+KerasNLP/*.txt
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
