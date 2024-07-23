@@ -5,3 +5,4 @@ nebula-docker-compose/
 .idea/
 notebook/LLM-RAG-Recommendation/ml-100k/
 storage_graph/
+NLP-Tasks/glove.6B/
