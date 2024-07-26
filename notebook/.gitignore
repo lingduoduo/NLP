@@ -6,3 +6,5 @@ nebula-docker-compose/
 notebook/LLM-RAG-Recommendation/ml-100k/
 storage_graph/
 NLP-Tasks/glove.6B/
+LLM-RAG-Agent/storage/
+LLM-RAG-Agent/cpi/
