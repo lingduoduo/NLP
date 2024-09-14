@@ -1,0 +1,1060 @@
+<section data-type="chapter" id="retrieval_augmented_generation_rag_fundamentals" xmlns="http://www.w3.org/1999/xhtml">
+      <h1>Retrieval Augmented Generation (RAG) Fundamentals</h1>
+      <aside data-type="sidebar"><h1>A Note for Early Release Readers</h1>
+<p>With Early Release ebooks, you get books in their earliest form—the author's raw and unedited content as they write—so you can take advantage of these technologies long before the official release of these titles.</p>
+
+<p>This will be the 2nd chapter of the final book. Please note that the GitHub repo will be made active later on.</p>
+
+<p>If you have comments about how we might improve the content and/or examples in this book, or if you notice missing material within this chapter, please reach out to the editor at <em>rfernando@oreilly.com</em>.</p>
+</aside>
+      <p>In this chapter, we delve into the fundamentals of Retrieval-Augmented Generation (RAG) systems, exploring their core components and techniques for building an effective RAG pipeline. We cover data preprocessing, index construction using embeddings and vector stores, various retrieval methods including keyword-based, embedding-based, and knowledge graph integration, as well as advanced retrieval approaches. Additionally, we discuss generation models, quality assurance strategies, and tools like LangChain and LlamaIndex that simplify RAG system development. Practical examples illustrate implementing RAG query engines with vector stores and knowledge graphs, providing a comprehensive understanding of this powerful approach to combining large language models with external knowledge sources.</p>
+      <section data-type="sect1" id="rag_overview">
+        <h1>RAG Overview</h1>
+        <p>Retrieval-Augmented Generation (RAG) represents a significant advancement in the field of natural language processing (NLP) because it empowers large language models (LLMs) to access and leverage information from vast datasets when generating text. This is a game-changer compared to traditional LLM approaches that rely solely on the information encoded within their pre-trained models.</p>
+        <p>In this section, we'll explore the key benefits of RAG systems, explore how they compare to other approaches like prompt engineering and fine-tuning, and provide an overview of the core components that make up a RAG system.</p>
+        <section data-type="sect2" id="motivation">
+          <h2>Motivation</h2>
+          <p>There are several key benefits to utilizing RAG systems that address limitations present in traditional LLM approaches and unlock new possibilities for text generation.</p>
+          <p>First, while LLMs have made great progress in understanding and generating human-like text, these models, by their very nature, rely on probabilistic methods to generate responses. This reliance often leads models to unintentionally produce <em>hallucinations</em>, which are responses that, while plausible, are incorrect or nonsensical. Such hallucinations pose a risk of spreading misinformation, a concern that cannot be taken lightly, especially in contexts where accuracy and reliability are important. RAG presents a compelling approach to mitigating these limitations inherent in LLMs. By enhancing LLMs with the capability to access, retrieve, and integrate external knowledge and context into their responses, RAG systems can significantly diminish the occurrence of hallucinations. </p>
+          <p>Second, RAG addresses the <em>knowledge staleness </em>problem. Traditional LLMs, due to their vast number of parameters and tokens, are not only expensive and resource-intensive to train but also struggle with incorporating up-to-date, time-sensitive information. Their training datasets are often static, capturing knowledge only up to a certain point in time and thus become stale. In contrast, RAG dynamically retrieves information from a constantly updated external database, allowing it to provide more current and relevant responses, especially in scenarios that require real-time data or event-related information.</p>
+          <p>Third, RAG offers a significant advantage in terms of <em>data privacy</em><strong>,</strong> which is particularly crucial for enterprise applications. With traditional LLMs, there is a risk associated with sending sensitive enterprise data and files to external servers for processing. RAG, however, allows for a more secure approach where sensitive business data can be stored locally. The local data can then be used in conjunction with an online LLM for tasks like summarization and analysis. This hybrid model ensures that the core data remains within the enterprise's control, mitigating privacy and security concerns.</p>
+          <p>Finally, the <em>adaptability </em>of RAG systems to integrate specific, domain-relevant data sources marks a significant advancement in tailoring artificial intelligence to meet specialized enterprise needs. By customizing the external knowledge sources that RAG systems access, enterprises can ensure that the model's outputs are not only current but also highly pertinent and customized to the unique requirements of different industries. This customization enhances the model's ability to provide accurate, context-rich responses while minimizing hallucinations.</p>
+        </section>
+        <section data-type="sect2" id="rag_versus_prompt_engineering_and_fine_tuning">
+          <h2>RAG versus Prompt Engineering and Fine-Tuning </h2>
+          <p>Prompt engineering, which we covered in Chapter 1 under "Prompt Engineering," can help steer a model to respond in the way we want. However, it has its limits. For example, it can't fill in gaps when the model doesn't know something specific to a particular field or proprietary information it hasn't been trained on. Also, it doesn't guarantee that the model will fully grasp or respond correctly to the local specifics of knowledge, which can be a big deal for businesses that have particular security concerns.</p>
+          <p>Fine-tuning big pre-trained models, which we discussed in Chapter 1 under “Fine-Tuning”, can really boost how well these models perform on specific tasks. However, this process isn't always easy, especially for smaller organizations or projects that don't have big budgets. The main issue is that it requires a lot of computation power, which can get pretty expensive. Not everyone can afford to run these heavy-duty computations. On top of that, you need some serious tech skills, particularly in natural language processing (NLP), to get it right. This can be a hurdle if you don't have NLP experts on hand. Also, fine-tuning isn't a quick job; it takes a considerable amount of time to train the model, set up the datasets, tweak the training setup, and fine-tune the model to work well for your specific needs. Lastly, even with careful adjustments, these large language models have their limits. They only know what's been fed into them up to a certain point, and sometimes they might even get things wrong or "hallucinate" information that isn't accurate.</p>
+          <p>RAG is a fresh and exciting approach that's stepping up as an alternative to the usual prompt engineering and fine-tuning methods. It's designed to tackle some of their shortcomings by bringing in extra knowledge from outside sources. This helps to cut down on the incorrect info that often pops up in standalone language models. One of the coolest things about RAG is how it stays up-to-date. It uses advanced tech to fetch the latest information, making it more accurate and timely than older models that only depend on what they were originally taught. Plus, RAG is pretty transparent—it can show where its answers come from, which lets users check if the information is correct. This builds more trust. Also, you can customize RAG to better suit different areas by adding specific kinds of text data, making it flexible and useful for a variety of needs.</p>
+          <p>In terms of security and privacy management, RAG offers enhanced control over data usage with robust roles and security controls within systems, presenting a clear advantage over prompt engineering and fine-tuned models that may not offer as transparent data access permissions. Moreover, RAG's scalability in processing large-scale datasets without the need for continuous parameter updates or new training sets positions it as economically efficient. It assures more trustworthy outcomes by deriving deterministic results from up-to-date data, contrasting with fine-tuned models that might propagate misinformation and inaccuracies when dealing with dynamic data sources.</p>
+        </section>
+        <section data-type="sect2" id="rag_components_overview">
+          <h2>RAG Components Overview</h2>
+          <p>A RAG system comprises three core components: a retrieval mechanism, an external knowledge base, and a language model for generation. The retrieval mechanism accesses and retrieves relevant information from the external knowledge base, which can include documents, databases, and knowledge graphs beyond the model's training data. The retrieved information augments the language model's knowledge, allowing it to generate more accurate and contextually relevant responses by leveraging external, real-world information. This seamless integration of retrieval, external knowledge, and language generation empowers RAG systems to provide responses by dynamically accessing and incorporating diverse data sources. </p>
+          <p>The primary components of RAG systems are presented in Figure 2-1.</p>
+          <figure id="fig_1_rag_component_overviews">
+            <img alt="RAG Component Overviews" src="images/retrieval_augmented_generation_rag_fundamentals_624130_01.png"/>
+            <figcaption>RAG Component Overviews</figcaption>
+          </figure>
+          <p>Let’s take a closer look at the primary components in the following sections.</p>
+        </section>
+      </section>
+      <section data-type="sect1" id="index_creation">
+        <h1>Index Creation</h1>
+        <p>The process of transforming raw data into formatted data that is ready for modeling involves several crucial steps, each designed to refine the data's quality, relevance, and accessibility.</p>
+        <section data-type="sect2" id="data_preprocessing">
+          <h2>Data Preprocessing</h2>
+          <p>Initially, data preprocessing requires data cleaning, removing irrelevant text or documents to focus modeling efforts on pertinent information, followed by reformatting indexed data to align with end-user expectations, thereby facilitating smoother integration in real-world applications.</p>
+          <p>Metadata can then be added<strong> </strong>to documents for efficient retrieval. By including metadata like file creation date and purpose, the relevancy of a data block to a particular query can be quickly identified. For example if the user query is to “summarize Microsoft 2023 Q3 10-Q report”, then associating quarter information with 10-Q reports will facilitate more accurate answer retrieval. Developing standardized loaders for each document type is also critical, as these loaders return a uniform list of document objects that encapsulate both content and metadata, ensuring consistent and effective processing across various data types. This comprehensive approach ensures that the data not only meets the specific requirements of modeling tasks but is also prepared in a standard format that supports efficient analysis and processing, leading to more accurate and actionable insights.</p>
+          <p>Dealing with different types of data in LLMs involves several strategies to deal with non-text data formats . For instance, vector search leverages vector representations of various data types, such as text, images, and audio to efficiently retrieve information that is most relevant to a given query. Here are some key approaches:</p>
+          <dl>
+            <dt>Preprocessing and Normalization</dt>
+            <dd>
+              <p>Before feeding data into an LLM, it's crucial to normalize the data. This may involve standardizing formats, and converting non-textual data into a format that can be processed by the model. For instance, images can be described in text, and audio can be transcribed.</p>
+            </dd>
+            <dt>Feature Extraction</dt>
+            <dd>
+              <p>For non-textual data like images or audio, feature extraction techniques are employed to convert these into embeddings or feature vectors that represent the data's essential characteristics. These embeddings can then be input into LLMs for various tasks.</p>
+            </dd>
+            <dt>Data Augmentation</dt>
+            <dd>
+              <p>This approach can be used to enhance the model's ability to deal with diverse data types. This involves artificially creating training data through techniques such as paraphrasing, translating, or using synthetic data generation for non-text data. This helps in improving the model's robustness and performance across different data types.</p>
+            </dd>
+          </dl>
+          <p>Implementing these strategies requires careful consideration of the LLM's capabilities, the nature of the data, and the specific task at hand. By effectively addressing the challenges associated with different types of data, LLMs can be leveraged to their full potential across a wide range of applications.</p>
+        </section>
+        <section data-type="sect2" id="chunking_techniques">
+          <h2>Chunking Techniques</h2>
+          <p>Chunking splits the initial document into chunks of a <strong>certain size</strong>, trying not to lose semantic meaning, splitting the text into sentences or paragraphs instead of splitting a single sentence into two parts. There are various text splitter implementations capable of accomplishing this task. The size of the chunks is an important parameter to consider - it depends on the embedding model you use and its token capacity, a standard transformer model (e.g. BERT-based sentence transformer) requires up to 512 tokens. OpenAI ada-002 can handle longer sequences, such as 8191 tokens, but here there is a trade-off between leaving enough context for a large language model to reason, or leaving a specific enough text representation to perform retrieval effectively.</p>
+          <p>There are several factors that play a role in determining the best chunking strategy, depending on the use case. </p>
+          <ul>
+            <li>
+              <p>The <strong>nature of the content</strong> is fundamental. For instance, whether dealing with lengthy documents like articles or books, or shorter forms such as tweets or instant messages, requires the suitable model and chunking approach. </p>
+            </li>
+            <li>
+              <p>The <strong>choice of embedding model</strong> and its optimal block size also plays a crucial role. </p>
+            </li>
+            <li>
+              <p><strong>User query</strong> expectations, whether short and specific or long and complex, influence the chunking method to ensure a better match between embedded queries and content chunks. Additionally, the application of retrieved results, be it for semantic search, summarization, or other purposes. </p>
+            </li>
+            <li>
+              <p>Any limitations it imposes, such as <strong>token limits</strong> for subsequent LLM processing, must be considered to tailor chunk size and strategy accordingly.</p>
+            </li>
+          </ul>
+          <p>The <strong>fixed-size blocking</strong> method stands out as the most straightforward and commonly used approach, requiring a decision on the number of tokens per chunk and whether there should be overlap between chunks. Overlapping is often preferred to ensure semantic context continuity. Fixed-size chunking, typically depending on the embedding model, is favored for its computational efficiency and simplicity, although it may result in some loss of semantic detail due to the fixed chunk sizes.</p>
+          <p>On the other hand, <strong>intent-based chunking</strong> offers a more nuanced approach, splitting documents into smaller chunks that can produce multiple vectors of tokens, tailored to the relevance of the context to the prompt and the model’s token limits. This method adjusts the chunk size, from single sentences to multiple paragraphs, to better align with the query's specificity or breadth, potentially enhancing the alignment between long queries and their corresponding embeddings or providing precision for shorter queries. Recursive chunking adds another layer of flexibility, iteratively dividing text into smaller chunks using a hierarchy of delimiters and criteria until achieving chunks of a desired size or structure, thus allowing for a balance between uniformity and the need to preserve meaningful content segmentation.</p>
+          <p>The <strong>strategy-based chunking</strong> depends on several factors, including the type and length of the content, the specific LLM employed (such as ChatGLM, ChatGPT, and Claude.ai), which dictates the token length limits and thus affects the block size, as well as the complexity and length of the question and answer text, which ideally should match the chunk size to optimize retrieval efficiency. Furthermore, the application type also significantly influences the chunking approach. In practice, when chunks are divided without maintaining entity names, information loss can occur, particularly if initial sentences introduce entities by name and subsequent ones refer to them with pronouns, leading to chunks that lose semantic meaning. Replacing pronouns with actual entity names in chunks can greatly enhance their semantic significance and retrieval effectiveness. Moreover, optimizing chunk size and overlap is essential to ensure each piece contains enough relevant information without overwhelming the LLM or exceeding context size limits. From practical experience, it's beneficial not to adhere rigidly to one chunk optimization strategy throughout your pipeline. Varying chunk sizes can be more effective, such as using larger chunks for summarization tasks and smaller ones for detailed tasks like coding, to accommodate the specific information needs and processing capabilities required for different types of tasks.</p>
+        </section>
+        <section data-type="sect2" id="embedding_and_vector_stores">
+          <h2>Embedding and Vector Stores</h2>
+          <p>The chunks of text are represented as embeddings, which are dense vectors of numbers that represent the semantic meaning of data. </p>
+          <p>In the domain of embeddings, a cornerstone for the functionality of LLMs, a diverse array of models is accessible, each boasting distinct advantages and tailored for various scenarios. Notably, BGE, with its impressive ranking on HuggingFace’s Massive Text Embedding Benchmark (MTEB), exemplifies the capability of embeddings to significantly enhance model performance. Similarly, OpenAI’s Text-embedding-ada-002 model, featuring 1536 dimensions, contributes a versatile tool for embedding tasks, underscoring the global AI community’s efforts in advancing this technology. These models collectively provide a broad spectrum of embedding solutions, addressing different requirements and substantially improving the precision and relevance of the content generated by LLMs. Through this intricate process, the system transforms user queries into vectors, leveraging the same encoding model to ascertain the similarity between the query vector and document block vectors within the corpus, thereby selecting the most relevant document blocks to enrich the current question with supplementary background information.</p>
+          <p>Embedding vectors are easy to store and retrieve. The embedding vectors can be indexed and managed by libraries, existing system plugins, and vector databases:</p>
+          <dl>
+            <dt>Vector Databases </dt>
+            <dd>
+              <p>Specialized, fully-fledged systems designed to handle unstructured data, inheriting traditional database properties such as Create-Read-Update-Delete (CRUD) operations. They are optimized for speedy queries, relying on Approximate Nearest Neighbor (ANN) algorithms to swiftly locate the closest vectors, thereby ensuring low latency in query responses. These databases are capable of organizing embeddings into indices and scaling to accommodate millions or billions of records, though they may introduce added costs for integration. Examples include open-source options like Chroma, Milvus, Redis, Weaviate, and Vespa, as well as non-open-source platforms like Pinecone and Databricks Vector Search.</p>
+            </dd>
+            <dt>Libraries</dt>
+            <dd>
+              <p>Geared towards creating vector indices using ANN search algorithms and are best suited for small, static datasets. While they lack CRUD support and require rebuilding for updates, necessitating a wait until full import completion before querying, they are stored in-memory (RAM) without data replication, offering a lightweight solution for vector indexing.</p>
+            </dd>
+            <dt>Plugins </dt>
+            <dd>
+              <p>Offer architectural enhancements to existing relational databases or search systems, such as OpenSearch and Elasticsearch, providing vector search capabilities. These tend to feature less rich functionalities, limited metric and ANN algorithm choices, and less user-friendly APIs compared to full vector databases but can seamlessly integrate vector search into existing database architectures.</p>
+            </dd>
+          </dl>
+          <p>Each of these solutions, <em>vector databases, libraries, and plugins</em>, plays a crucial role in the ecosystem of vector stores, enabling the efficient handling and querying of unstructured data based on vector similarity and supporting a wide range of applications from context augmentation to advanced search functionalities.</p>
+        </section>
+      </section>
+      <section data-type="sect1" id="retrieval_idx848hx">
+        <h1>Retrieval</h1>
+        <p>The retrieval process is a crucial part of the RAG system, and understanding how it works is key to creating effective responses to user queries. </p>
+        <p>Retrieval techniques in RAG systems are multifaceted, evolving from traditional methods to more sophisticated, AI-driven approaches. The effectiveness of a retrieval process directly influences the quality and relevance of the information provided to the generative components of RAG systems, thereby impacting the overall output quality. </p>
+        <p>We are going to discuss both basic retrieval techniques (keyword-based retrieval, embedding-based retrieval, graph-based retrieval) and advanced retrieval techniques. </p>
+        <section data-type="sect2" id="keyword_based_retrieval">
+          <h2>Keyword based Retrieval</h2>
+          <p>We begin our exploration of the retrieval process with keyword-based retrieval, a simple yet efficient retrieval method that is implemented in most retrieval systems. Keyword based retrieval seeks to find matches between the query string and each document chunk. The document chunks with more matches to the query string are considered more relevant. </p>
+          <p>The naive form of keyword based retrieval is <em>boolean</em><em> retrieval</em>, which forms query conditions by logical operators like "AND", "OR", "NOT". For example, a query of "restaurant AND Mediterranean" indicates document chunks which contain both "restaurant" and "Mediterranean". Boolean retrieval returns document chunks that satisfy the query condition, and may return empty results if no document satisfies the condition. Another drawback with boolean retrieval is it does not necessarily rank the returned document chunks.</p>
+          <p>Another commonly used keyword retrieval technique is <em>BM25</em>, which is used in most information retrieval systems. <em>BM25</em> ranks documents primarily based on TF-IDF, which measures how well they match the query terms. The basic idea of TF-IDF is that the importance of a word in the document is proportional to its frequency of occurrence, but decreases with its frequency of occurrence in the corpus. Some words that appear in all texts (such as "the", "is", "in") do not contribute to the theme of the text.</p>
+          <dl>
+            <dt>Term Frequency (TF) </dt>
+            <dd>
+              <p>BM25 considers documents where the search term appears more frequently as more relevant.</p>
+            </dd>
+            <dt>Inverse Document Frequency (IDF)</dt>
+            <dd>
+              <p>It downweighs the importance of common words that appear in many documents (like "the") and emphasizes terms that are specific to the document.</p>
+            </dd>
+          </dl>
+          <p>By combining these factors, BM25 aims to deliver a more relevant ranking of documents compared to a simple keyword matching approach.</p>
+          <p>Keyword-based retrieval is favored by most because of its efficiency and simplicity:</p>
+          <dl>
+            <dt>Efficiency</dt>
+            <dd>
+              <p>Keyword searching is a computationally inexpensive way to identify relevant documents, making RAG systems faster to operate.</p>
+            </dd>
+            <dt>Simplicity</dt>
+            <dd>
+              <p>It's a well-established technique, making it easier to implement and understand compared to more complex retrieval methods.</p>
+            </dd>
+          </dl>
+          <p>However, keyword-based retrieval have its limitations including limited understanding of semantics and inaccuracy:</p>
+          <dl>
+            <dt>Limited Semantics</dt>
+            <dd>
+              <p>Keyword matching can miss documents containing synonyms or expressing the same meaning but with different wording.</p>
+            </dd>
+            <dt>Inaccuracy</dt>
+            <dd>
+              <p>Over-reliance on keywords can lead to retrieving irrelevant documents that simply contain the keywords but lack relevance to the query.</p>
+            </dd>
+          </dl>
+        </section>
+        <section data-type="sect2" id="embedding_based_retrieval_ebr">
+          <h2>Embedding based retrieval (EBR)</h2>
+          <p>For embedding based retrieval (EBR), we start with the vanilla basic vector index retrieval, and then talk about hierarchical index retrieval which builds hierarchical index on text chunks. </p>
+          <section data-type="sect3" id="basic_vector_index_retrieval">
+            <h3>Basic vector index retrieval</h3>
+            <p>The versatility of the indexing strategy, including the choice of data and the specific requirements of the search systems, allows for the incorporation of metadata alongside vector embeddings. This capability enables enhanced basic vector index retrieval and search functionalities through <em>metadata filters</em>, facilitating refined searches within specific metadata requirements. Embedding detailed reference metadata within data blocks, such as date, purpose, chapters, and referenced sections, presents a robust method for managing environments characterized by voluminous and diverse data that necessitate quick and precise access. This technique allows for pinpoint searches within large datasets, significantly reducing search time. Users benefit from being able to efficiently locate the most relevant information based on temporal or source-related criteria, ensuring an optimized retrieval process. The implementation of such a strategy, despite necessitating careful planning in metadata design and index structure, promises significant improvements in retrieval time and accuracy, making it particularly well-suited for basic vector index retrieval.</p>
+            <p>By dividing the index into multiple blocks, each categorized by specific criteria, the approach not only narrows the search scope but also enables parallel processing, thereby enhancing computational efficiency. Thus basic vector index retrieval is invaluable for tailoring search results to precise needs, ensuring users can efficiently locate the most relevant information based on temporal or source-related criteria. Figure 2-2 shows a basic index retrieval workflow.</p>
+            <figure id="fig_2_basic_index_retrieval">
+              <img alt="Basic Index Retrieval" src="images/retrieval_augmented_generation_rag_fundamentals_624130_02.png"/>
+              <figcaption>Basic Index Retrieval</figcaption>
+            </figure>
+          </section>
+          <section data-type="sect3" id="hierarchical_index_retrieval">
+            <h3>Hierarchical index retrieval </h3>
+            <p>In scenarios where the volume of documents to be searched is substantial, the efficiency of retrieval becomes paramount to find pertinent information and synthesize it into a cohesive answer with references to the original sources. A strategic approach to managing large databases effectively is the implementation of hierarchical index retrieval. This method involves the creation of two distinct types of indices: one consisting of document summaries and the other comprising document chunks. Figure 2-3 shows a hierarchical index retrieval workflow.</p>
+            <figure id="fig_3_hierarchical_index_retrieval">
+              <img alt="Hierarchical Index Retrieval" src="images/retrieval_augmented_generation_rag_fundamentals_624130_03.png"/>
+              <figcaption>Hierarchical Index Retrieval</figcaption>
+            </figure>
+          </section>
+        </section>
+        <section data-type="sect2" id="section_2_3_3_knowledge_graph_enriched_retrieval">
+          <h2>Knowledge Graph Enriched Retrieval</h2>
+          <p>Knowledge Graphs (KGs) are a game-changer in how we retrieve and understand information. Unlike traditional data storage methods, KGs don't just store raw data; they capture the relationships and connections between different pieces of information, giving us a more holistic and contextual understanding. When integrated into RAG systems, KGs enable more insightful and relevant data retrieval, ultimately improving the quality of the generated information. They bridge the gap between data and meaning by representing the intricate web of connections that give data its real-world significance. This contextual understanding is particularly valuable for complex queries, where the relevance and relationships between data points are crucial for retrieving the right information.</p>
+          <p>But before we dive into how KGs enrich retrieval systems, let's first understand what KGs are and how they work.</p>
+          <section data-type="sect3" id="introduction_to_knowledge_graph">
+            <h3>Introduction to Knowledge Graph </h3>
+            <p>A Knowledge Graph (KG) is a structured way of representing knowledge as a network of interconnected entities (objects, events, or concepts) and their relationships. Entities are represented as nodes, and relationships as edges, allowing for a dynamic and contextual representation of knowledge.</p>
+            <p>There are several categories of KGs:</p>
+            <dl>
+              <dt>Encyclopedic KGs</dt>
+              <dd>
+                <p>These capture broad, real-world knowledge by aggregating data from various sources like encyclopedias, experts, and databases. An example is Wikidata, which amalgamates knowledge from Wikipedia articles.</p>
+              </dd>
+            </dl>
+            <figure id="fig_4_encyclopedic_knowledge_graphs">
+              <img alt="Encyclopedic Knowledge Graphs" src="images/retrieval_augmented_generation_rag_fundamentals_624130_04.png"/>
+              <figcaption>Encyclopedic Knowledge Graphs</figcaption>
+            </figure>
+            <dl>
+              <dt>Commonsense KGs</dt>
+              <dd>
+                <p>These focus on everyday notions, objects, and events, capturing implicit knowledge from texts, such as the association (Car, UsedFor, Drive).</p>
+              </dd>
+            </dl>
+            <figure id="fig_5_commonsense_knowledge_graphs">
+              <img alt="Commonsense Knowledge Graphs" src="images/retrieval_augmented_generation_rag_fundamentals_624130_05.png"/>
+              <figcaption>Commonsense Knowledge Graphs</figcaption>
+            </figure>
+            <dl>
+              <dt>3. Domain-Specific KGs</dt>
+              <dd>
+                <p>Specialized for particular fields like medicine or finance, these offer a more compact yet precise and trustworthy knowledge base compared to encyclopedic KGs.</p>
+              </dd>
+            </dl>
+            <figure id="fig_6_domain_specific_knowledge_graphs">
+              <img alt="Domain Specific Knowledge Graphs" src="images/retrieval_augmented_generation_rag_fundamentals_624130_06.png"/>
+              <figcaption>Domain-Specific Knowledge Graphs</figcaption>
+            </figure>
+            <dl>
+              <dt>Multi-Modal KGs</dt>
+              <dd>
+                <p>Going beyond text, these incorporate diverse data types like images, videos, and audio, enabling multi-modal applications like image-text correlation and visual question answering.</p>
+              </dd>
+            </dl>
+            <figure id="fig_7_multi_modal_knowledge_graphs">
+              <img alt="Multi Modal Knowledge Graphs" src="images/retrieval_augmented_generation_rag_fundamentals_624130_07.png"/>
+              <figcaption>Multi-Modal Knowledge Graphs</figcaption>
+            </figure>
+            <p>To get the most out of KGs, we use graph algorithms—tools that help find the most influential nodes, detect clusters of similar nodes, and predict new links that might form. Later on, in "RAG Tools and Packages," we'll explore tools that can turn data from tables, logs, and documents into these useful graphs.</p>
+            <p>To better understand how KG and LLMs are able to help enrich or augment each other, see Table 2-1, which compares their knowledge, accuracy, interpretability, and language understanding.</p>
+            <table>
+              <caption>
+                <span>Comparisons of KGs and LLMs</span>
+              </caption>
+              <tr>
+                <td/>
+                <td>Knowledge Graphs (KGs)</td>
+                <td>Large Language Models (LLMs)</td>
+              </tr>
+              <tr>
+                <td rowspan="4">Knowledge </td>
+                <td>Structural Knowledge</td>
+                <td>Implicit Knowledge</td>
+              </tr>
+              <tr>
+                <td>Domain-specific Knowledge</td>
+                <td>Lacking Domain-specific Knowledge</td>
+              </tr>
+              <tr>
+                <td>Evolving Knowledge</td>
+                <td>Lacking New Knowledge</td>
+              </tr>
+              <tr>
+                <td>Incomplete / Unseen Facts</td>
+                <td>General Knowledge</td>
+              </tr>
+              <tr>
+                <td>Accuracy</td>
+                <td>Accuracy and Decisiveness</td>
+                <td>Hallucination and Indecisiveness</td>
+              </tr>
+              <tr>
+                <td>Interpretability</td>
+                <td>Interpretability</td>
+                <td>Black-box</td>
+              </tr>
+              <tr>
+                <td>Language Understanding</td>
+                <td>Lacking Language Understanding</td>
+                <td>Language Processing</td>
+              </tr>
+            </table>
+            <p>KGs are structured databases that contain highly curated and interconnected information. They excel in providing detailed structural and domain-specific knowledge, as well as evolving and updating with new information, albeit sometimes incomplete. On the other hand, LLMs hold vast amounts of implicit knowledge derived from the language patterns found in extensive text corpora. They are adept at processing language but can sometimes generate inaccurate or hallucinated information and lack the domain-specific knowledge that KGs possess.</p>
+          </section>
+          <section data-type="sect3" id="unifying_knowledge_graph_and_llms">
+            <h3>Unifying Knowledge Graph and LLMs</h3>
+            <p>The unification of KGs and LLMs addresses the inherent limitations of both. KGs can provide the structured, accurate data that LLMs lack, improving the LLMs' ability to generate precise and reliable outputs. Conversely, LLMs can enrich KGs with the ability to process and understand natural language, making them more accessible and versatile in interpreting queries and textual data.</p>
+            <p>The integration of Knowledge Graphs (KGs) and Large Language Models (LLMs) is poised to revolutionize the way we approach machine learning and data comprehension. This amalgamation seeks to leverage the expansive knowledge and dynamic reasoning capabilities of KGs with the advanced natural language processing skills of LLMs. </p>
+            <p>For example, using <a href="https://medium.com/enterprise-rag/injecting-knowledge-graphs-in-different-rag-stages-a3cd1221f57b">a document hierarchy and a contextual dictionary</a>, we are able to guide the LLM to retrieve relevant and contextually necessary chunks of info that are required to adequately answer the question. Thus, instead of having to search every document and then having the LLM figure out if the documents are relevant to answering pieces of the question, we are able to rely on a structured meta-information data store to reach the right parts of the answer directly. LLMs can be used to extract information from data, which is then used to build the KG. In RAG systems leveraging knowledge graphs, the user’s prompt first goes through an embedding model to create a vector representation capturing its semantic meaning. This vector is then used to identify the most relevant nodes in the knowledge graph.</p>
+            <p>As depicted in Figure 2-8, we can augment LLMs through the infusion of Knowledge Graphs. The inference capabilities of LLMs are elevated through dynamic knowledge fusion and retrieval-augmented knowledge processes, thereby enhancing interpretability. This could potentially transform how LLMs probe and analyze data, making them more adept at understanding and generating human-like text.</p>
+            <figure id="fig_8_kg_enhanced_llms">
+              <img alt="KG Enhanced LLMs" src="images/retrieval_augmented_generation_rag_fundamentals_624130_08.png"/>
+              <figcaption>KG-Enhanced LLMs</figcaption>
+            </figure>
+            <p>Besides using KGs to augment LLMs, the synergy between these two knowledge representations can be further enhanced by leveraging LLMs to enrich KGs. LLMs can aid in knowledge graph completion, entity discovery, relation extraction, and coreference resolution, leading to more comprehensive and detailed KGs. The culmination of these approaches is a synergized framework that seamlessly integrates LLMs and KGs, enabling them to collaborate effectively. In this hybrid model, LLMs extract entities and relations to expand KGs while simultaneously using these knowledge graphs to enhance their reasoning and answer generation capabilities. This synergy paves the way for advanced applications like KG-augmented text generation and question answering, where the system can not only retrieve information but also interpret and apply it in context, bringing us closer to creating AI that can understand and interact with human language and knowledge in a more nuanced and sophisticated manner.</p>
+          </section>
+        </section>
+        <section data-type="sect2" id="section_2_3_4_advanced_retrieval">
+          <h2>Advanced Retrieval </h2>
+          <p>In preceding discussions, we delved into the vanilla information retrieval methods: keyword-based, embedding-based, and graph-based retrieval systems. Each method presents a unique set of advantages and limitations, shaped by its underlying principles and application contexts. However, there is no silver bullet when building practical RAG systems in complex domains, it often requires stitching different ideas together to get the best of two worlds. In this section, we introduce three practical retrieval ideas: </p>
+          <dl>
+            <dt>Hybrid retrieval</dt>
+            <dd>
+              <p><em>T</em>he idea of hybrid retrieval is similar to that of model ensemble in machine learning, instead of relying on one retrieval technique, we combine several methods to better leverage their unique strengths.</p>
+            </dd>
+            <dt><span><em>Hypothetical </em></span>data<span><em> embedding (</em></span><span><em>HyDe</em></span><span><em>)</em></span></dt>
+            <dd>
+              <p>This idea aims to fix the discrepancy between query embedding and response embedding. It seeks to generate a hypothetical response that is semantically more similar to the actual response.</p>
+            </dd>
+            <dt><span><em>Small-to-</em></span>big<span><em> retrieval</em></span></dt>
+            <dd>
+              <p><em>T</em>his idea aims to solve the problem that the embedding of large document chunks may be too coarse for effective retrieval, thus we can retrieve smaller text pieces and then expand the scope to get more context.</p>
+            </dd>
+          </dl>
+          <section data-type="sect3" id="hybrid_retrieval">
+            <h3>Hybrid Retrieval </h3>
+            <p>Hybrid retrieval combines the strengths of keyword-based, embedding-based, and graph-based retrieval methods. By seamlessly integrating these techniques, hybrid systems leverage their collective power to deliver more relevant and comprehensive results. The key lies in the adaptive nature of hybrid retrieval, allowing it to harness the precision of keywords, the contextual richness of embeddings, and the relational insights of graphs, based on the specific needs of each query. This synergistic approach aims to optimize information retrieval efficacy across diverse scenarios.</p>
+            <p>Hybrid retrieval represents a significant advancement in information retrieval, combining the strengths of different methods to outperform any single retrieval strategy. This integrated approach harnesses the precision of keyword-based searches, the nuanced understanding from embedding-based systems, and the contextual insights from graph-based models. Here's a closer look at why and how these hybrid systems excel.</p>
+            <section data-type="sect4" id="why_hybrid_retrieval_works">
+              <h4>Why Hybrid Retrieval Works</h4>
+              <p>Hybrid retrieval systems excel because they integrate multiple retrieval methods, each addressing the shortcomings of the others. For example, keyword-based methods are great at quickly identifying relevant documents based on specific terms, but they can miss contextual nuances. Embedding-based systems, on the other hand, excel at capturing semantic relationships but might struggle with precision. Graph-based methods add a layer of relational understanding, linking concepts in a way that purely textual methods cannot. By combining these approaches, hybrid systems achieve greater accuracy and depth, providing a more complete and nuanced retrieval of information.</p>
+              <p>The following are two detailed examples of hybrid retrieval methods.</p>
+              <p>First, <strong>Keyword + Embedding-Based Hybridization</strong>. Integrating the strengths of traditional keyword-based search algorithms, such as TF-IDF or BM25, with the nuanced understanding of modern semantic or vector search presents a compelling approach to enhancing retrieval systems. As shown in Figure 2-10, this hybrid retrieval strategy aims to leverage the precision of sparse retrieval methods and the contextual comprehension of vector search to produce superior search outcomes. </p>
+              <figure id="fig_9_hybrid_retrieval_sparse_retrieval_and_vector_base">
+                <img alt="Hybrid Retrieval  Sparse Retrieval and Vector based Retrieval" src="images/retrieval_augmented_generation_rag_fundamentals_624130_09.png"/>
+                <figcaption>Hybrid Retrieval: Sparse Retrieval and Vector-based Retrieval</figcaption>
+              </figure>
+              <p>Second, <strong>Embedding + Graph-Based Hybridization</strong>. A prominent advancement in this domain is the Embedding and Graph-Based Hybridization, which offers a nuanced way to enhance the RAG application with the structural benefits of a KG. This integration embodies a multifaceted retrieval process that ensures depth and contextuality in the generated responses, as illustrated in Figure 2-11.</p>
+              <figure id="fig_10_hybrid_retrieval_vector_based_retrieval_and_graph">
+                <img alt="Hybrid Retrieval  Vector based Retrieval and Graph based Retrieval" src="images/retrieval_augmented_generation_rag_fundamentals_624130_10.png"/>
+                <figcaption>Hybrid Retrieval: Vector-based Retrieval and Graph-based Retrieval</figcaption>
+              </figure>
+            </section>
+            <section data-type="sect4" id="how_hybrid_systems_operate">
+              <h4>How Hybrid Systems Operate</h4>
+              <p>Hybrid retrieval systems function through two main strategies: ensemble and cascade methods. In ensemble methods, multiple retrieval techniques are applied simultaneously to the same query. Their results are then merged using methods like voting, rank aggregation, or weighted averaging, which ensure that the final output leverages the strengths of each method. Cascade methods apply retrieval techniques in a sequential manner, where the output of one method refines the input for the next, increasingly honing in on the most relevant results through layers of filtering.</p>
+              <p>Table 2-2 lists the ways to combine retrieval methods. </p>
+              <table>
+                <caption>Hybrid Retrieval Methods</caption>
+                <tr>
+                  <td>Combination Method</td>
+                  <td>Description</td>
+                  <td>Example</td>
+                </tr>
+                <tr>
+                  <td>Ensemble Methods</td>
+                  <td>
+                    <ul>
+                      <li>Multiple retrieval methods are used in parallel. </li>
+                      <li>Results are combined using techniques like voting, rank aggregation, or weighted averaging.</li>
+                    </ul>
+                  </td>
+                  <td>
+                    <ol>
+                      <li>Use keyword-based and embedding-based retrieval together.</li>
+                      <li>Combine their results based on confidence scores or relevance rankings.</li>
+                    </ol>
+                  </td>
+                </tr>
+                <tr>
+                  <td>Cascade Methods</td>
+                  <td>
+                    <ul>
+                      <li>Retrieval methods are applied in sequence.</li>
+                      <li>The output of one method is the input for the next.</li>
+                    </ul>
+                  </td>
+                  <td>
+                    <ol>
+                      <li>Apply keyword-based retrieval to get a broad set of documents. </li>
+                      <li>Use embedding-based retrieval on this subset to find the most relevant documents based on semantic similarity.</li>
+                    </ol>
+                  </td>
+                </tr>
+                <tr>
+                  <td>Hybrid Embeddings</td>
+                  <td>
+                    <ul>
+                      <li>Creation of hybrid embeddings that combine different types of information for retrieval tasks.</li>
+                    </ul>
+                  </td>
+                  <td>
+                    <ol>
+                      <li>Create hybrid embeddings that integrate text, metadata, and graph structure information</li>
+                      <li>Use hybrid embeddings for retrieval.</li>
+                    </ol>
+                  </td>
+                </tr>
+              </table>
+              <p>The choice of hybrid retrieval strategy depends on factors such as the characteristics of the data, the computational resources available, and the specific requirements of the application. Hybrid retrieval can often outperform individual retrieval methods by leveraging their complementary strengths and mitigating their weaknesses.</p>
+            </section>
+            <section data-type="sect4" id="platform_implementations">
+              <h4>Platform Implementations</h4>
+              <p>Practical implementations of hybrid retrieval can be seen in platforms like LangChain and LlamaIndex. We are going to learn more details of LangChain and LlamaIndex tools in Section “Building a RAG System”. LangChain's Ensemble Retriever class, for example, employs the Reciprocal Rank Fusion (RRF) algorithm to effectively merge results from different retrieval methods like Faiss vector indexes and BM25-based retrievers. This synergy ensures that the retrieved documents are not only relevant but also ranked in a way that truly reflects their importance to the query. LlamaIndex utilizes a similar approach, showcasing how industry platforms are adopting hybrid retrieval to enhance the efficacy and accuracy of their search systems.</p>
+              <p>In summary, hybrid retrieval systems offer a sophisticated solution by combining the accuracy of keyword-based methods, the semantic depth of embeddings, and the contextual insights of graphs. This results in a more robust and effective retrieval system that is better equipped to handle the complexity and variety of user queries, demonstrating superior performance over individual retrieval methods.</p>
+            </section>
+          </section>
+          <section data-type="sect3" id="hypothetical_data_embedding_hyde">
+            <h3>
+              <span>Hypothetical data embedding (</span>
+              <span>HyDe</span>
+              <span>)</span>
+            </h3>
+            <figure id="fig_11_hypothetical_data_embedding_workflow">
+              <img alt="Hypothetical data embedding workflow" src="images/retrieval_augmented_generation_rag_fundamentals_624130_11.png"/>
+              <figcaption>Hypothetical data embedding workflow</figcaption>
+            </figure>
+            <p>A challenge frequently encountered by retrieval systems is the semantic discrepancy between the query and answer. For example, a query of “what is the performance of the manufacturing industry” may have answers that explain the PMI (Purchasing Managers' Index), which characterizes trends in manufacturing sectors. However, the query and keyword “PMI” might not lie in a vicinity of the embedded space. A novel approach called Hypothetical Data Embedding (HyDE) has been proposed to bridge the semantic gap.</p>
+            <p>This HyDE method involves prompting the LLM to generate a hypothetical response to a given query. The vectors of these hypothetical responses, along with the query vectors, are then utilized to enhance the retrieval process. Both of these approaches, by focusing on the semantic relationships between queries and the data, present a more sophisticated way of navigating and extracting information from large databases. By leveraging the nuanced understanding of LLMs to generate questions and responses that closely align with the user's search intent, these methods offer a more targeted and efficient means of information retrieval, demonstrating the potential of advanced AI techniques in improving search and data management practices.</p>
+          </section>
+          <section data-type="sect3" id="small_to_big_retrieval">
+            <h3>Small-to-Big Retrieval</h3>
+            <p>The "Small-to-Big" retrieval approach is a novel paradigm in information retrieval designed to address the challenges posed by vast and complex datasets. This method is rooted in the principle of scalability and efficiency, progressively expanding the scope of search from highly specific, granular data points to broader, more comprehensive datasets. The essence of this approach lies in its staged retrieval process, which systematically escalates from "small" (narrow, precise queries) to "big" (broad, generalized searches), optimizing for both accuracy and computational efficiency.</p>
+            <section data-type="sect4" id="concept_and_process">
+              <h4>Concept and Process</h4>
+              <p>Small-to-Big retrieval is built on the principle of staged retrieval, which enhances both computational efficiency and accuracy through a three-phase process:</p>
+              <ol>
+                <li>
+                  <p><em>Initial Narrow Search</em>: The process begins with a targeted search in a tightly defined subset of the data. This step focuses on leveraging high-precision, often keyword-based or specific embedding vectors, to quickly identify the most relevant data points with minimal computational overhead.</p>
+                </li>
+                <li>
+                  <p><em>Iterative Expansion: </em>Following the initial search, the system incrementally broadens the search parameters. This might involve relaxing keyword constraints, expanding the semantic scope of embeddings, or exploring adjacent nodes in a graph-based model. The aim is to methodically increase the dataset's breadth while maintaining relevance to the original query.</p>
+                </li>
+                <li>
+                  <p><em>Comprehensive Exploration:</em> In the final phase, the retrieval process extends to the broadest possible dataset, employing more generalized search criteria. This stage ensures that no potentially relevant information is overlooked, capturing the full spectrum of data related to the query.</p>
+                </li>
+              </ol>
+            </section>
+            <section data-type="sect4" id="implementation_strategies">
+              <h4>Implementation Strategies</h4>
+              <p>To execute the Small-to-Big retrieval effectively, several strategies can be employed:</p>
+              <dl>
+                <dt>Multi-Stage Filtering</dt>
+                <dd>
+                  <p>Implement a multi-tiered filtering system, where each stage progressively relaxes search constraints, allowing a broader set of data points to pass through to the next level.</p>
+                </dd>
+                <dt>Dynamic Query Adjustment</dt>
+                <dd>
+                  <p>Utilize algorithms that can dynamically adjust query parameters based on the results of each stage, ensuring that the search remains focused yet adaptable.</p>
+                </dd>
+                <dt>Hierarchical Data Structuring</dt>
+                <dd>
+                  <p>Organize data in hierarchical structures that facilitate starting from specific, highly relevant nodes and expanding outward in a structured manner.</p>
+                </dd>
+              </dl>
+            </section>
+            <section data-type="sect4" id="key_advantages">
+              <h4>Key Advantages</h4>
+              <p>The Small-to-Big approach offers significant benefits for RAG systems:</p>
+              <dl>
+                <dt>Efficiency</dt>
+                <dd>
+                  <p>By starting with a small subset of the data, the initial retrieval stage is computationally efficient, reducing the overall retrieval time and resource requirements.</p>
+                </dd>
+                <dt>Scalability</dt>
+                <dd>
+                  <p>The method is designed to handle large-scale data corpora by progressively expanding the search space, avoiding the need to process the entire corpus at once.</p>
+                </dd>
+                <dt>Flexibility</dt>
+                <dd>
+                  <p>Different retrieval methods can be used at different stages, allowing for the combination of complementary techniques and leveraging their respective strengths.</p>
+                </dd>
+                <dt>Refinement</dt>
+                <dd>
+                  <p>The iterative refinement process helps improve the quality and relevance of the retrieved results, reducing noise and irrelevant information.</p>
+                </dd>
+              </dl>
+            </section>
+            <section data-type="sect4" id="application_in_rag_systems">
+              <h4>Application in RAG Systems</h4>
+              <p>In addition to the Small-to-Big retrieval method, RAG systems employ other advanced retrieval techniques to enhance context enrichment and accuracy:</p>
+              <dl>
+                <dt>Sentence Window Retrieval</dt>
+                <dd>
+                  <p>This scheme embeds each sentence within a document individually and performs contextual cosine distance searches to pinpoint the most relevant sentences to the query. The identified sentence is then supplemented with 'k' sentences before and after to provide an expanded context to the LLM.</p>
+                </dd>
+                <dt>Automatic Merge Crawler (Parent Document Crawler)</dt>
+                <dd>
+                  <p>This technique divides documents into smaller sub-chunks, each referencing a larger parent chunk, creating a hierarchical structure. During retrieval, 'k' leaf blocks are fetched, and if 'n' blocks reference the same parent block, they are amalgamated into this broader context for the LLM to process.</p>
+                </dd>
+              </dl>
+              <p>Figure 2-4 shows a Parent document index retrieval workflow.</p>
+              <figure id="fig_12_parent_child_chunks_retrieval">
+                <img alt="Parent child chunks Retrieval" src="images/retrieval_augmented_generation_rag_fundamentals_624130_12.png"/>
+                <figcaption>Parent-child chunks Retrieval</figcaption>
+              </figure>
+              <p>The Small-to-Big retrieval method, combined with techniques like sentence window retrieval and automatic merge crawlers, empowers RAG systems with advanced retrieval capabilities. These methods facilitate scalable, efficient, and context-rich information retrieval, enabling RAG systems to generate more accurate and comprehensive responses, even when dealing with vast and complex data corpora.</p>
+            </section>
+          </section>
+        </section>
+      </section>
+      <section data-type="sect1" id="section_2_4_generation">
+        <h1>Generation</h1>
+        <p>After index creation and document retrieval, the next step in using RAG is to use LLMs to generate responses. </p>
+        <p>For building applications using LLMs, the practitioners are familiar with the convention that one can prototype an application in a couple of hours, but it takes weeks or even months to ship to production. The generative models and orchestration tools have lowered the barrier to build a product prototype, now one can easily build a text or voice based assistant based on a corpse of documents. </p>
+        <p>However, shipping to production requires more than just a workable demo. It requires a certain level of accuracy defined by the application scenario, low latency so the user can enjoy a pleasant experience, and a robust and resilient system that the engineers can maintain and scale up. In this section, we will cover how to choose a generation model and propose ideas to improve generation quality.</p>
+        <section data-type="sect2" id="section_2_4_1_generation_models">
+          <h2>Generation Models</h2>
+          <p>There are several factors that affect the choice of generation model, including model performance, context window, inference latency and cost and system integration considerations, to name a few.</p>
+          <section data-type="sect3" id="model_performance">
+            <h3>Model performance</h3>
+            <p>The size of the model and the number of parameters it is trained with play a crucial role. Larger models tend to have better performance but require more computational resources and memory. The following are things to consider when choosing a model based on performance:</p>
+            <ul>
+              <li>
+                <p>Try using larger and more complex models which usually have better reasoning ability than smaller models (e.g. GPT4 &gt; GPT3.5), if budget permits. Larger and more complex models can handle situations that require reasoning from the existing documents, rather than simply rephrasing or copying the original words.</p>
+              </li>
+              <li>
+                <p>Try using distilled smaller models. LLM providers usually launch a suite of models with different model sizes. Distilled smaller models often come with low latency and low cost at the sacrifice of performance. For example, it's about 50 times cheaper and faster than GPT-4. Many applications don't need GPT-4 level of accuracy, but need low-latency inference and economical support for free users. </p>
+              </li>
+              <li>
+                <p>Try other proprietary providers (especially Anthropic's Claude model). Claude provides fast inference, GPT-3.5 level of accuracy, more customization options for large customers, and up to 100,000 context windows. </p>
+              </li>
+              <li>
+                <p>Route some requests to open source models: this is especially effective in B2C applications such as search or chat, where query complexity varies greatly and services need to be provided to free users at low cost. Currently, open source models lag behind proprietary models, and it is a controversial topic on whether the gap between open source and commercial models will narrow or widen.</p>
+              </li>
+            </ul>
+          </section>
+          <section data-type="sect3" id="context_window">
+            <h3>Context window</h3>
+            <p>The size of the context window indicates the amount of contextual information the model can consider during generation. A larger context window size allows the model to consider more information, which may improve the accuracy of the generated answers, especially for questions that require comprehensive knowledge of the subject. However, a larger context window size can also increase the computational cost of the model, as it requires more processing to incorporate the additional information.</p>
+            <p>The emergence of large language models (LLMs) with vast context windows, like Google's recently released Gemini 1.5 Pro with a 1 million token window, presents both opportunities and challenges. While these models can achieve impressive feats like 99.7% recall in specific detail retrieval tasks and summarize information across vast troves of data, there are limitations to consider. While long-context LLMs offer advantages, some significant challenges persist:</p>
+            <dl>
+              <dt>Limited Scope for Large Document Corpora</dt>
+              <dd>
+                <p>A 1 million token window, roughly equivalent to 70 SEC 10K filings, might be sufficient for smaller datasets but falls short for massive knowledge bases in the gigabytes or terabytes. Developers will still need retrieval mechanisms to augment LLMs with context in such scenarios.</p>
+              </dd>
+              <dt>Lagging Embedding Models</dt>
+              <dd>
+                <p>Current embedding models, which convert text into numerical representations for retrieval, struggle with the large context windows handled by LLMs. These models typically work with much smaller chunks, necessitating retrieval strategies that account for this discrepancy.</p>
+              </dd>
+              <dt>Cost and Latency</dt>
+              <dd>
+                <p>Despite future improvements, processing massive context windows currently incurs significant costs and latency. Queries requiring a 1 million token window can take up to 60 seconds and cost between $0.50 and $20 based on current pricing structures.</p>
+              </dd>
+            </dl>
+          </section>
+          <section data-type="sect3" id="inference_idCxWRBt">
+            <h3>Inference</h3>
+            <p>We cover two aspects of inference in this section, tuning LLM parameters to achieve better performance and speed up the inference process. Large language models usually offer some parameters for practitioners to tune to optimize the performance of their application. Examples of these include model temperature that controls the stochasticity, and top-p which controls the diversity of generated text.</p>
+            <dl>
+              <dt>Temperature</dt>
+              <dd>
+                <p>Temperature affects the spikiness of the conditional distribution used to generate the next token. It is usually measured between 0 and 1.</p>
+            <ul>
+              <li>
+                <p>A higher temperature flattens the probability distribution. It increases “creativity” by allowing the model to explore different possibilities. But it may also increase the risk of generating nonsense or incoherent text. </p>
+              </li>
+              <li>
+                <p>A lower temperature makes the distribution more spiky, it tends to increase the chance of generating the most probable answer.</p>
+              </li>
+            </ul>
+                          </dd>
+            </dl>
+            <dl>
+              <dt>Top-p (nucleus sampling)</dt>
+              <dd>
+                <p>Top-p sampling sets a threshold probability p and selects the top generations whose cumulative probability exceeds this threshold. </p>
+            <ul>
+              <li>
+                <p>A larger value of p in nucleus sampling, for example setting top-p to 0.9, the model will consider the most likely words that make up 90% of the probability mass, which increase the diversity of the generated text.</p>
+              </li>
+              <li>
+                <p>On the contrary, a smaller value of p restricts the sampling to the top candidates and reduces diversity.</p>
+              </li>
+            </ul>
+                          </dd>
+            </dl>
+            <p>Another aspect to consider is how to speed up the inference process. There are several proposed approaches:</p>
+            <dl>
+              <dt>Key-value (KV) caching</dt>
+              <dd>
+                <p>Key-value caching involves caching the hidden states of the model for previously seen inputs. This can significantly reduce the computational cost of generating text, as the model can reuse the cached states instead of recomputing them for each new input.</p>
+              </dd>
+              <dt>Alternative model architectures</dt>
+              <dd>
+                <p>Model architectures, such as <em>HyperMixer</em><em> </em>or <em>mixture-of-experts models</em> are alternatives to transformer models in reducing the inference cost. </p>
+                
+            <ul>
+              <li>
+                <p>HyperMixer dynamically forms the token mixing MLP using hypernetworks. Empirically, it performs better than other MLP-based models and on par with Transformers. </p>
+              </li>
+              <li>
+                <p>In a mixture-of-expert models, the model is divided into several smaller sub-models, each specialized in a particular task or domain. During inference, the most relevant sub-models are selected and used to generate the output, thereby reducing the computational cost.</p>
+              </li>
+            </ul>
+              </dd>            
+            </dl>
+          </section>
+          <section data-type="sect3" id="system_integration">
+            <h3>System integration</h3>
+            <p>Remember that RAG is not just a model, it’s a system. When considering integrating a generation model into the RAG system, there are several factors to consider. Besides the quality of the generated text, the speed of generation, we need to consider the ability to control the output, the ease of integration with the RAG system, and the trade-offs of different factors. It is important to evaluate different generation models and choose the one that best meets the needs of the integration.</p>
+            <p>Ultimately, the choice of approach will depend on the specific requirements and constraints of the application, and it may be necessary to experiment with different configurations to find the best solution.</p>
+          </section>
+        </section>
+        <section data-type="sect2" id="section_2_4_2_generation_quality">
+          <h2>Generation Quality</h2>
+          <p>When generating responses, we need to take special care to ensure the quality of generated text. Certain application scenarios like finance, medicine and AI agents have high requirements on the generation quality. </p>
+          <p>As illustrated by Figure 2-5, we often employ a feedback loop into the generation workflow. </p>
+          <ul>
+            <li>
+              <p>For each generation, we assess the quality of generated text, and determine if the generation can be sent downstream.</p>
+            </li>
+            <li>
+              <p>If the current generation fails the quality gate, we request LLM to regenerate response. The process can be iterated multiple times until a successful generation or we exceed the maximum number of retries.</p>
+            </li>
+          </ul>
+          <figure id="fig_13_generation_quality_feedback_loop">
+            <img alt="Generation quality feedback loop" src="images/retrieval_augmented_generation_rag_fundamentals_624130_13.png"/>
+            <figcaption>Generation quality feedback loop</figcaption>
+          </figure>
+          <p>The quality of large language model generations is a critical aspect of the RAG systems. Different applications may have different requirements on generation quality. For example, creative writing and artworks may require the generation to be diverse even with surprises, while other applications like knowledge-based question-answering may focus more on the relevance and factual accuracy.</p>
+          <p>A rule of thumb in maintaining high quality is to adopt holistic strategies to ensure quality and reduce hallucination. The holistic strategy includes: </p>
+          <ul>
+            <li>
+              <p>Iterating on prompt to improve dimensions of quality like diversity or factual consistency.</p>
+            </li>
+            <li>
+              <p>Choice of generation model and model parameters and </p>
+            </li>
+            <li>
+              <p>Checking the quality of generated text to suggest next action, either accept the current generation, or seek other facts and evidence, or reject the generation. </p>
+            </li>
+          </ul>
+          <p>There is a vast amount of literature on using LLMs for evaluation, methods like <em>self-consistency GPT</em>, <em>chain of verifications</em>, <em>self reflection</em> are proposed in the academic literature and used in practical systems. We defer the detailed discussion of LLMs for evaluation to the next chapter (Chapter 3).</p>
+        </section>
+      </section>
+      <section data-type="sect1" id="section_2_5_building_a_rag_system">
+        <h1>Building a RAG System</h1>
+        <p>Now that you understand the inner workings of RAG, it's time to delve into the practicalities of building one. This section will explore the commonly used tools and packages that streamline the RAG development process. </p>
+        <p>Building a RAG system often involves integrating various components, such as retrieval engines, language models, and knowledge bases. Pipeline and orchestration tools help streamline this process by providing a unified framework for managing and coordinating these components. Vector databases, as discussed earlier, play a crucial role in efficiently storing and retrieving the embeddings generated by the retriever component. Additionally, graph databases offer a powerful way to represent and query complex, interconnected data structures, which can be beneficial in certain RAG applications. In the following subsections, we will delve into these tools and packages, exploring their capabilities and use cases within the context of RAG systems.</p>
+        <section data-type="sect2" id="section_2_5_1_pipeline_and_orchestration_tools">
+          <h2>Pipeline and Orchestration Tools</h2>
+          <p>In the construction of a RAG system, efficient pipeline and orchestration tools are pivotal. Two of the most popular tools among AI engineers in this domain are `llamaIndex` and `langchain`. In this section, we'll briefly introduce these two commonly used tools.</p>
+          <section data-type="sect3" id="langchain_idLDwlbr">
+            <h3>LangChain</h3>
+            <p>With a core concept based on "chaining" different components, LangChain is an application development framework built on top of large models.</p>
+            <p>LangChain has emerged as a versatile framework designed to help developers unleash the potential of LLMs in various applications. As the name suggests, connecting different modules together is the main purpose of LangChain. The idea is to link each module in a chain and ultimately utilize that chain to invoke all modules in one go.</p>
+            <p>As shown in Table 2-3, langchain is an open-source Python library designed to facilitate the building of LLM-based applications more easily by:</p>
+            <ul>
+              <li>
+                <p>Offering a framework for managing prompts</p>
+              </li>
+              <li>
+                <p>Providing a universal interface to a variety of different foundational models</p>
+              </li>
+              <li>
+                <p>Supplying a central interface for long-term memory capabilities, external data, and other agent programs to handle tasks that LLMs cannot manage.</p>
+              </li>
+              <li>
+                <p>Enabling observability to evaluate and monitor performances of LLM applications. </p>
+              </li>
+            </ul>
+            <table>
+              <caption>Langchain Functionalities</caption>
+              <tr>
+                <td>Category</td>
+                <td>Tools/Services</td>
+              </tr>
+              <tr>
+                <td>Data Pre-Processing</td>
+                <td>UnstructuredIO, Airbyte</td>
+              </tr>
+              <tr>
+                <td>Document &amp; Text Splitting</td>
+                <td>Generic Recursive Text Splitter, Markdown Splitter, Python Code Splitter</td>
+              </tr>
+              <tr>
+                <td>Indexing</td>
+                <td>LlamaIndex</td>
+              </tr>
+              <tr>
+                <td>Vector Database </td>
+                <td>FAISS, Pinecone, Weaviate, Elasticsearch</td>
+              </tr>
+              <tr>
+                <td>Embedding Services</td>
+                <td>OpenAI, Hugging Face, Cohere</td>
+              </tr>
+              <tr>
+                <td>External Search APIs</td>
+                <td>SerpApi, Searx, Wikipedia API, Wolfram Alpha, Zapier Natural Language Actions API</td>
+              </tr>
+              <tr>
+                <td>LLM APIs</td>
+                <td>OpenAI, Hugging Face, Cohere, Anthropic, PaLM, GooseAI, Cerebrium AI, Forefront AI, Petals</td>
+              </tr>
+              <tr>
+                <td>Evaluation Datasets</td>
+                <td>Hugging Face (truthful qa), LangchainDatasets</td>
+              </tr>
+              <tr>
+                <td>Application</td>
+                <td>Streamlit, Hugging Face (Gradio), Steamship, Kookaburra</td>
+              </tr>
+              <tr>
+                <td>Observability</td>
+                <td>Langsmith, Helicone, Prompt Layer, Weights &amp; Biases</td>
+              </tr>
+            </table>
+            <p>While the learning curve on LangChain might be a bit steep, LlamaIndex, on the other hand, is a bit more intuitive. </p>
+          </section>
+          <section data-type="sect3" id="llamaindex">
+            <h3>LlamaIndex</h3>
+            <p>LlamaIndex is a sophisticated framework tailored for developing RAG systems, providing an intuitive and streamlined platform for developers. This advanced search and indexing platform enhances data retrieval using a mix of traditional and innovative indexing techniques, significantly boosting the efficiency and accuracy of LLMs.</p>
+            <p>The following are key features of LlamaIndex:</p>
+            <dl>
+              <dt>Project Scaffolding</dt>
+              <dd>
+                <p>LlamaIndex offers pre-built project templates, such as `create-llama`, which rapidly generates a full-stack scaffold, helping developers bypass the setup of basic infrastructure and dive straight into more critical development tasks.</p>
+              </dd>
+              <dt>Data Integration</dt>
+              <dd>
+                <p>At the heart of LlamaIndex is LlamaHub, a feature that facilitates easy data import from various sources including Google Drive, Discord, Slack, and databases. LlamaHub is instrumental in integrating domain-specific data into the RAG system, enhancing the system’s performance in retrieval and generation tasks. This capability extends to handling documents from diverse platforms such as PDFs, Wikipedia, Notion, and Twitter, streamlining the ingestion and structuring of information.</p>
+              </dd>
+              <dt>Simplified LLM Integration</dt>
+              <dd>
+                <p>The platform features a user-friendly interface that abstracts the complexities of integrating different LLM backends. This allows developers to concentrate on building their systems without delving into the intricate details of LLM configurations.</p>
+              </dd>
+              <dt>Intuitive Workflows</dt>
+              <dd>
+                <p>Emphasizing modularity, LlamaIndex allows developers to deconstruct their RAG system into smaller, manageable components. These can be interconnected to form complex workflows, which simplifies the development process and improves both maintainability and reusability of code.</p>
+              </dd>
+              <dt>Pre-built Embeddings</dt>
+              <dd>
+                <p>LlamaIndex supports integration with various pre-trained embedding models from platforms like Hugging Face. These embeddings, which convert text into numerical representations, facilitate efficient data retrieval, enabling developers to utilize powerful pre-existing solutions without custom development.</p>
+              </dd>
+            </dl>
+            <p>The following are the benefits of using LlamaIndex:</p>
+            <dl>
+              <dt>Faster Development Time</dt>
+              <dd>
+                <p>With its project templates and streamlined workflows, LlamaIndex significantly cuts down the time required to develop a RAG system from scratch.</p>
+              </dd>
+              <dt>Reduced Complexity</dt>
+              <dd>
+                <p>By handling many of the underlying technical complexities, LlamaIndex allows developers to focus more on the core functionalities of their projects.</p>
+              </dd>
+              <dt>Improved Maintainability</dt>
+              <dd>
+                <p>Thanks to its modular design, systems built with LlamaIndex are easier to modify and upgrade, enhancing long-term code maintenance and flexibility.</p>
+              </dd>
+            </dl>
+            <p>LlamaIndex is an exemplary tool for developers looking to quickly and efficiently build RAG systems. Its simplicity and user-friendliness make it an appealing choice, particularly for those who wish to minimize the complexity often associated with such developments. While platforms like LangChain offer more detailed control for experienced developers, LlamaIndex excels in providing a balanced, accessible environment that speeds up the development of effective RAG systems.</p>
+          </section>
+        </section>
+        <section data-type="sect2" id="section_2_5_2_vector_database">
+          <h2>Vector Database</h2>
+          <p>In recent years, vector databases have gained significant attention as a powerful tool for storing and searching high-dimensional arrays (vectors). Vector databases are essential for efficiently storing and retrieving the embeddings generated by the RAG system's retriever component.</p>
+          <p>These databases are widely used in various fields, including search engines, advertising, recommendations, autonomous driving, risk control, biopharmaceuticals, and more. As big models continue to develop, vector databases have become essential for representing multi-modal data, such as text, images, and videos, in a unified format. They serve as the memory and knowledge center for these large models, providing long-term memory functions and storing domain-specific contexts.</p>
+          <p>Vector data, composed of multiple floating-point arrays, can represent different modalities and user interests. It is typically generated by deep learning models and can be used for tasks like image generation, converting data into a common modal domain, and adding style and detail features to generated images. Vector databases are systems designed to manage this type of data, offering low-cost storage and search capabilities. The implementation of vector databases involves three main steps: vector extraction, indexing (using approximate nearest neighbor algorithms), and query.</p>
+          <p>The primary difference between relational databases and vector databases lies in the types of data they optimize for. Relational databases are designed for structured data in columns, while vector databases optimize for unstructured data (text, images, audio) and their vector embeddings. Traditional databases use B-tree indexes for exact matches, whereas vector databases build indexes using table structures, tree structures, and graph structures for efficient semantic searches and similar matches. Many available vector databases, such as Pinecone, Chroma, Weaviate, Quadrant, Faiss, and OpenSearch, can store vector embeddings alongside original source data, enabling both vector searches and traditional keyword searches. In practice, developers can choose these tools based on their use cases, considering factors such as whether the tool is open source or private, how much it costs to use these tools, and how easy it is to use these packages. </p>
+        </section>
+        <section data-type="sect2" id="section_2_5_3_graph_database">
+          <h2>Graph Database</h2>
+          <p>Graph databases are a type of NoSQL database that store data in the form of nodes (representing entities) and relationships (representing connections between entities). Unlike traditional relational databases that use tables and rows, graph databases employ a graph structure composed of vertices (nodes) and edges (relationships). This data model excels at representing highly interconnected data and enables efficient traversal and querying of complex relationships.</p>
+          <p>The following code creates three nodes (two Person nodes and one City node), and establishes three relationships: two LIVES_IN relationships between the people and the city, and a KNOWS relationship between the two people.</p>
+          <pre data-type="programlisting">// Create nodes
+CREATE (person1:Person {name: 'Alice', age: 30})
+CREATE (person2:Person {name: 'Bob', age: 35})
+CREATE (city:City {name: 'New York'})
+
+// Create relationships
+CREATE (person1)-[:LIVES_IN]-&gt;(city)
+CREATE (person2)-[:LIVES_IN]-&gt;(city)
+CREATE (person1)-[:KNOWS]-&gt;(person2)</pre>
+          <p>Another prominent graph database is NebulaGraph, which uses a query language called nGQL (a variant of Gremlin). The following is an example of creating nodes and relationships in NebulaGraph. The code code creates two tags (person and city), two edge types (lives_in and knows), and then inserts vertices (nodes) and edges (relationships) using those types.</p>
+          <pre data-type="programlisting">// Create tags (labels)
+CREATE TAG person(name string, age int);
+CREATE TAG city(name string);
+
+// Create edge types
+CREATE EDGE TYPE lives_in();
+CREATE EDGE TYPE knows();
+
+// Create nodes
+INSERT VERTEX person(name, age) VALUES "Alice"("Alice", 30);
+INSERT VERTEX person(name, age) VALUES "Bob"("Bob", 35);
+INSERT VERTEX city(name) VALUES "New York"("New York");
+
+// Create relationships
+INSERT EDGE lives_in(UUID("Alice"), UUID("New York"));
+INSERT EDGE lives_in(UUID("Bob"), UUID("New York"));
+INSERT EDGE knows(UUID("Alice"), UUID("Bob"));</pre>
+          <p>Graph databases are particularly well-suited for representing and querying knowledge graphs, which are collections of interconnected entities and their relationships, often used in fields like artificial intelligence, semantic web, and data integration. Here's an example of a simple knowledge graph represented in a graph database:</p>
+          <pre data-type="programlisting">// Create nodes
+CREATE (entity1:Entity {name: 'Apple'})
+CREATE (entity2:Entity {name: 'Steve Jobs'})
+CREATE (entity3:Entity {name: 'Tim Cook'})
+
+// Create relationships
+CREATE (entity2)-[:FOUNDED]-&gt;(entity1)
+CREATE (entity3)-[:LEADS]-&gt;(entity1)
+CREATE (entity2)-[:PRECEDED_BY]-&gt;(entity3)</pre>
+          <p>This graph represents the relationships between the entities "Apple," "Steve Jobs," and "Tim Cook." The FOUNDED relationship indicates that Steve Jobs founded Apple, the LEADS relationship indicates that Tim Cook leads Apple, and the PRECEDED_BY relationship suggests that Tim Cook succeeded Steve Jobs as the leader of Apple.</p>
+          <p>By leveraging the graph structure, graph databases enable efficient traversal and analysis of complex relationships, making them valuable tools for applications that deal with highly interconnected data, such as social networks, recommendation systems, fraud detection, and knowledge management.</p>
+          <p>NebulaGraph DB is an open-source, distributed graph database that delivers high performance and scalability for managing complex and connected data. Designed with a shared-nothing architecture, it excels in efficiently handling large-scale graphs, capable of supporting hundreds of billions of vertices and trillions of edges with minimal latency. This makes NebulaGraph particularly suited for applications requiring intensive data relationship analysis, such as social networks, recommendation systems, and knowledge graphs. NebulaGraph Studio is a browser-based tool which implies the management of NebulaGraph. For building Knowledge Graph RAG, we will need to install NebulaGraph locally. One of the quickest ways to install NebulaGraph is through Docker Desktop and use NebulaGraph Studio. The user-friendly interface allows for effortless manipulation of graph schemas, data importation, and the execution of query statements for data retrieval, offering a comprehensive solution for graph database management and visualization. </p>
+        </section>
+      </section>
+      <section data-type="sect1" id="section_2_6_rag_use_cases">
+        <h1>RAG Use Cases</h1>
+        <p>As we explored in Chapter 1, the advent of LLMs represents a pivotal leap forward in customizing AI capabilities for distinct sectors within various industries. These advancements offer immense potential for innovation and increased efficiency. However, despite their impressive capabilities, LLMs face challenges, particularly when tasked with processing that demands deep, knowledge-intensive understanding, access to the latest information, or dealing with intricate, less common queries.</p>
+        <p>While LLMs are powerful tools, alone they may struggle with knowledge-intensive tasks lacking specific context involving domain-specific details, most recent data, and complex, rare questions. As we have demonstrated that RAG with additional context can significantly enhance the performance in numerous instances. Consider the scenario where we develop an AI Assistant in Chapter 1, posing the question, "I'm looking for information about Harry Potter. What can you suggest?" The response, "I don't have information on Harry Potter in the provided context," illustrates a limitation in contextual understanding in LLM. As we continue to delve into LLM, we will explore the construction of RAG query engines as a solution to these challenges.</p>
+        <p>We will develop two RAG Query Engines using LlamaIndex: one leveraging a Vector Store and the other utilizing a Knowledge Graph.</p>
+        <section data-type="sect2" id="section_2_6_1_vector_store_rag_query_engine">
+          <h2>Vector Store RAG Query Engine</h2>
+          <p>As outlined in 2.5.1, the core of LlamaIndex lies in the document abstraction, a versatile container that encapsulates a document's text before undergoing any transformations. This framework simplifies the creation of embeddings, effortlessly managing the storage of these embeddings in memory or vector databases with just a single line of code. More specifically, with VectorStoreIndex, we can generate embeddings for each node (or chunk) and identify the top K related nodes in response to a given query. These top K nodes are then fetched and utilized to assist in answering the user query effectively. </p>
+          <p>Let’s continue working with the Hugging Face 'xsum dataset’, which comprises a collection of BBC articles and their corresponding summaries. Load and preprocess data, create a VectorStoreIndex and generate embeddings for each node or chunk, and implement the query engine to retrieve the top K related nodes for a given query.</p>
+          <section data-type="sect3" id="step_1_reading_data_and_create_documents">
+            <h3>Step 1 - Reading data and create documents</h3>
+            <p>The first step mirrors the procedure outlined in "Step 1 - Reading and Pre-processing Data" within the "Semantic Search" segment of "LLM Use Cases" in Chapter 1. This dataset comprises the document and its corresponding summary. </p>
+            <p>After loading the data, we amalgamate the “document” and “summary” together to generate a new column “"combined". Then we can create a document loader. The following code snippet initializes a “SimpleDirectoryReader” object to load documents:</p>
+            <pre data-type="programlisting"># Save joined data
+!mkdir -p 'document/' <img alt="1" src="callouts/1.png" />
+documents = xsum_dataset["train"].select(range(1000)).to_pandas() <img alt="2" src="callouts/2.png" />
+joined_documents = '\n'.join(xsum_sample["combined"]) <img alt="3" src="callouts/3.png" />
+with open('document/documents.txt', 'w', encoding='utf-8') as file:
+    file.write(joined_documents)
+    
+# Create document loader
+from llama_index import SimpleDirectoryReader      
+                                                    
+loader = SimpleDirectoryReader(input_dir="./document/") <img alt="4" src="callouts/4.png" />
+documents = loader.load_data()</pre>
+                <p><img alt="1" src="callouts/1.png" /> This is a shell command to create a new directory named “document” in the current working directory.</p>
+                <p><img alt="2" src="callouts/2.png" /> After loading the data from the Hugging Face, the “joined_documents” join all entries from the “combined” column into a single string, with each entry separated by a newline character (\n). </p>
+                <p><img alt="3" src="callouts/3.png" /> We create a file named “documents.txt” inside the document directory, with writing permissions (“w”) and using UTF-8 encoding. It then writes the contents of “joined_documents” to this file. </p>
+                <p><img alt="4" src="callouts/4.png" /> A custom loader using “SimpleDirectoryReader” to load documents. The “SimpleDirectoryReader” is initialized with the directory containing the saved documents, and its “load_data()” method is called to read the documents into the variable documents. </p>
+          </section>
+          <section data-type="sect3" id="step_2_build_vectorstoreindex">
+            <h3>Step 2 - Build VectorStoreIndex </h3>
+            <p>The second step is to create a llama-index using a vector store. The following code sets up and running an ingestion pipeline using the llama_index for creating and managing vector indexes. To streamline the process, we can make use of the “IngestionPipeline” class that will apply the specified transformations to the Documents.</p>
+            <pre data-type="programlisting"># Chunk, encode, and store data into a vector store
+from llama_index.core.ingestion import IngestionPipeline
+from llama_index.core.node_parser import SentenceSplitter
+from llama_index.core import VectorStoreIndex
+from llama_index.embeddings.openai import OpenAIEmbedding
+from llama_index.vector_stores.qdrant import QdrantVectorStore
+import qdrant_client
+
+# Create a vector store
+client = qdrant_client.QdrantClient(location=":memory:") <img alt="1" src="callouts/1.png" />
+vector_store = QdrantVectorStore(client=client, collection_name="test_store")
+
+# Setup ingestion pipeline
+pipeline = IngestionPipeline( <img alt="2" src="callouts/2.png" />
+    transformations=[
+        SentenceSplitter(),
+        OpenAIEmbedding(),
+    ],
+    vector_store=vector_store,
+)
+_nodes = pipeline.run(documents=documents, num_workers=4) <img alt="3" src="callouts/3.png" />
+
+# Create a llama-index.
+index = VectorStoreIndex.from_vector_store(vector_store=vector_store) <img alt="4" src="callouts/4.png" /></pre>
+
+                <p><img alt="1" src="callouts/1.png" /> A “QdrantClient '' is initialized with the location set to ":memory:". It's a temporary database for the duration of the program's execution, useful for small-scale processing. A “vector_store” based on ”QdrantVectorStore” is created, acting as the storage layer for vector embeddings generated by the pipeline.</p>
+                <p><img alt="2" src="callouts/2.png" /> An “IngestionPipeline” is configured with “transformations” and “vector_store”. “transformations” included “SentenceSplitter()” and “OpenAIEmbedding()”, which indicates that documents fed into the pipeline will first be split into sentences, and then each sentence will be converted into vector embeddings using an unspecified OpenAI model. The pipeline uses the “vector_store” to store the embeddings.</p>
+                <p><img alt="3" src="callouts/3.png" /> The pipeline is executed on “documents” using four worker threads (“num_workers=4”). The variable “_nodes” would contain the result of this operation, which includes identifiers for the processed embeddings in the vector store. </p>
+                <p><img alt="4" src="callouts/4.png" /> A “index” is created from the “VectorStoreIndex” using the “from_vector_store” method. The index is built on the vector store for retrieving the generated embedding.</p>
+          </section>
+          <section data-type="sect3" id="step_3_retrieve_relevant_documents_and_generate">
+            <h3>Step 3 -  Retrieve relevant documents and generate final responses</h3>
+            <p>With the Index ready, we can now query it to retrieve the most relevant document to get the final response. We employ a specialized retriever pipeline, meticulously configured as follows:</p>
+            <pre data-type="programlisting"># Initialize a retriever
+retriever <strong>=</strong> index<strong>.</strong>as_retriever(similarity_top_k<strong>=</strong>2) <img alt="1" src="callouts/1.png" />
+retrieved_nodes <strong>=</strong> retriever<strong>.</strong>retrieve("I'm looking for the information of Harry Potter. What could you suggest to me?")
+
+# Initialize a query engine
+query_engine <strong>=</strong> index<strong>.</strong>as_query_engine() <img alt="2" src="callouts/2.png" />
+
+# to inspect the default prompt being used
+print( <img alt="3" src="callouts/3.png" />
+    query_engine<strong>.</strong>get_prompts()[
+        "response_synthesizer:text_qa_template"
+    ]<strong>.</strong>default_template<strong>.</strong>template
+)</pre>
+            <p>Output:</p>
+            <p>Context information is below.</p>
+            <p>---------------------</p>
+            <p>{context_str}</p>
+            <p>---------------------</p>
+            <p>Given the context information and not prior knowledge, answer the query.</p>
+            <p>Query: {query_str}</p>
+            <p>Answer:</p>
+
+                <p><img alt="1" src="callouts/1.png" /> We use the “as_retriever” method to configure the index, with a parameter “similarity_top_k=2” indicating that the retriever should return the top 2 most similar documents in response to a query. Then the retriever is used to search for information related to the query. The result of this retrieval operation is stored in “retrieved_nodes”.</p>
+
+                <p><img alt="2" src="callouts/2.png" /> The “as_query_engine” method is used so that the index is being configured to handle more complex query operations. </p>
+
+                <p><img alt="3" src="callouts/3.png" /> The print statement is to inspect the default prompt template used by the “query_engine”. “query_engine.get_prompts()” returns a collection of prompt templates available for different tasks or queries the engine can handle. "response_synthesizer:text_qa_template" accesses the template designed for text-based question answering. “.default_template.template” retrieves the actual template string used by the query engine.</p>
+
+            <p>The outputs outline the template designed for generating responses. Within this structure, “{context_str}” shows the placeholder for context information, ensuring the response is based on the retrieval embeddings. The template guides the system to focus on the "Query and Answer Section”. This ensures the generated response, prompted by "Query: {query_str}" and concluded with "Answer:", is relevant and confined to the provided details.</p>
+            <p>Finally, to address the query "I'm looking for the information of Harry Potter. What could you suggest to me?", we can experiment with various retrieval methods that can yield diverse outputs. By comparing the results from these methods, we can better understand their strengths and limitations in retrieving and suggesting pertinent content related to "Harry Potter".</p>
+            <p>The first instance of “query_engine” is created to utilize “similarity_top_k” :</p>
+            <pre data-type="programlisting">query_engine = index.as_query_engine(similarity_top_k=2)
+response = query_engine.query("I'm looking for the information of Harry Potter. What could you suggest to me?")
+print(response)</pre>
+            <p>Output:</p>
+            <p>You may be interested in learning about "Harry Potter and the Cursed Child," a play set 19 years after the final book in the Harry Potter series. It has received rave reviews from critics and offers a new and captivating story within the wizarding world created by JK Rowling.</p>
+            <p>The first “query_engine” is optimized to find the top two entries most relevant to the query. A query is triggered using the “query_engine”. This question is seeking recommendations or information related to "Harry Potter".The output shows "Harry Potter and the Cursed Child", highlighting it as a play set 19 years after the last book in the series. The response mentions that the play has received excellent reviews and offers a new story within J.K. Rowling's wizarding world. The response is directly related to the query's intent and provides a specific recommendation that expands on the original query. This indicates the query engine’s able to not just find matching keywords but to understand the context and intent behind queries to provide meaningful and relevant recommendations. </p>
+            <p>The second instance of “query_engine” is configured to use “response_mode” :</p>
+            <pre data-type="programlisting">query_engine = index.as_query_engine(response_mode="tree_summarize")
+response = query_engine.query("I'm looking for the information of Harry Potter. What could you suggest to me?")
+print(response)</pre>
+            <p>Output:</p>
+            <p>You may be interested in learning about "Harry Potter and the Cursed Child," a play set 19 years after the last book in the Harry Potter series. The play has received rave reviews from critics, with many praising its magical elements, storytelling, and performances. It is presented in two parts and offers a new and original experience for fans of the Harry Potter universe.</p>
+            <p>The second “query_engine” is instantiated when the documents are processed and summarized based on a tree structure. The response generated offers detailed information about "Harry Potter and the Cursed Child," highlighting it as a play set 19 years after the final book of the Harry Potter series. The summary is richer in detail compared to top-K retrieval method. Given the output including “the play's magical elements, storytelling, and performances”, the tree_summarize response is capable of extracting and organizing key information points in a way that provides a comprehensive overview of the topic in question. By leveraging a tree structure, the query engine can systematically explore and highlight different aspects of a topic, leading to a response that offers a depth of insights.</p>
+            <p>The third instance of “query_engine” is set up to use “streaming” :</p>
+            <pre data-type="programlisting">query_engine = index.as_query_engine(streaming=True)
+response = query_engine.query("I'm looking for the information of Harry Potter. What could you suggest to me?")
+response.print_response_stream()</pre>
+            <p>Output:</p>
+            <p>You may be interested in learning about "Harry Potter and the Cursed Child," a play set 19 years after the final book in the Harry Potter series. It has received rave reviews from critics and offers a new storyline involving Harry Potter and his friends as adults. The play is presented in two parts and has been described as a magical and game-changing production.</p>
+            <p>The third “query_engine” is instantiated from an index with the configuration “streaming=True”, preparing it to stream responses to queries. This mode is beneficial for scenarios where information needs to be updated dynamically or when dealing with queries that benefit from immediate feedback. The output highlights the play's setting 19 years after the series' last book, mentions its critical acclaim, and outlines the new adult storyline involving Harry Potter and his friends. Since steaming can provide information in a more interactive or continuous manner. This could be particularly advantageous in applications requiring real-time data processing or in interactive user interfaces where feedback and additional information can be dynamically provided based on user interactions or as more data becomes available.</p>
+            <p>The last “query_engine” is to configure it as a “chat_engine”:</p>
+            <pre data-type="programlisting">query_engine = index.as_chat_engine()
+response = query_engine.query("I'm looking for the information of Harry Potter. What could you suggest to me?")
+print(response)</pre>
+            <p>Output:</p>
+            <p>I found information about the play "Harry Potter and the Cursed Child." It is set 19 years after the seventh and final book in the series by JK Rowling. The play is presented in two parts, showing the stars of the wizarding saga as adults in their mid-30s as their own children head off to school. The play has received high praise from critics, with many giving it five-star reviews and describing it as a game-changing production. The script of the play has been published and it has been noted for its magical effects, moments of comedy, and its ability to captivate both fans of the series and new audiences.</p>
+            <p>The last configuration is designed to handle queries with a conversational tone, aiming to provide answers that are not only informative but also engaging and easy to understand. The output provided is conversational and detailed, offering comprehensive information about "Harry Potter and the Cursed Child." It includes the play's timeline relative to the original book series, its format, and the unique aspect of seeing the series' protagonists as adults. Moreover, it touches on the critical reception, the publication of the script, and the play's notable elements such as magical effects and comedy. This answer aims to satisfy the curiosity of someone inquiring about Harry Potter by highlighting a specific continuation of the story. The response's format and content reflect the chat engine's capabilities to produce answers that are not just accurate but also engaging and reflective of the query's conversational nature. </p>
+            <p>Exploring different configurations of a query engine, including “similarity_top_k”, “tree_summarize”, “streaming”, and “chat_engine” modes,demonstrates its versatility in processing and responding to the same query about "Harry Potter". Each method, from pinpointing top similar items, structuring information with a summarization tree, offering real-time streamed responses, to engaging in conversational dialogues, provides different insights. These varied retrieval approaches highlight the engine's capability to customize information retrieval and generation, catering to diverse interaction styles and informational needs effectively. Next, we will explore the process of utilizing knowledge graph RAG to construct a query engine.</p>
+          </section>
+        </section>
+        <section data-type="sect2" id="section_2_6_2_knowledge_graph_rag_query_engine">
+          <h2>Knowledge Graph RAG Query Engine</h2>
+          <p>As described in “Knowledge Graph Enriched Retrival,” Knowledge Graph is a way of organizing and connecting information in a graph format, where nodes represent entities, and edges represent the relationships between those entities. The graph structure allows for efficient storage, retrieval, and analysis of data. Creating a Knowledge Graph usually involves specialized and complex tasks. However, we can facilitate the creation of a relatively effective Knowledge Graph in NebulaGraph using LlamaIndex. Three pivotal components underscore the effectiveness of constructing and utilizing Knowledge Graph using LlamaIndex: </p>
+          <ul>
+            <li>
+              <p>The “KnowledgeGraphIndex”, a feature of Llama Index, offers a dynamic way to construct a Knowledge Graph from documents using LLMs. This approach focuses on extracting relationships between entities to represent concise facts from each node, making it one of the most effective methods for enabling search functionality that retrieves related information from documents or knowledge bases. By leveraging embeddings, the KnowledgeGraphIndex significantly enhances the ability to locate specific information related to a task at hand. </p>
+            </li>
+            <li>
+              <p>The “KnowledgeGraphQueryEngine”, a “Text2Cypher Query” engine, facilitates intuitive querying. Transitioning into the querying stage, this engine employs the “Text2Cypher” approach, efficiently translating natural language queries into Cypher queries to fetch relevant answers from the Knowledge Graph, making it a pivotal resource for extracting insights with precision and ease.</p>
+            </li>
+            <li>
+              <p>The “KnowledgeGraphRAGRetriever” introduces an advanced retrieval mechanism through a knowledge-enabled RAG approach. The “KnowledgeGraphRAGRetriever” embodies a Knowledge-enabled RAG methodology, designed to extract information from a Knowledge Graph pertinent to a specified task. This approach fundamentally aims to construct a context by leveraging the SubGraph of entities related to the task at hand.</p>
+            </li>
+          </ul>
+          <p>As an example, we implemented a “KnowledgeGraphRAGRetriever” to provide a deeper understanding of the functionality and the benefits. LlamaIndex not only simplifies the development of Knowledge Graphs but also provides users with a potent querying and information extraction framework, markedly enhancing the accessibility and efficacy of graph-based data management and analysis. </p>
+          <section data-type="sect3" id="step_1_prepare_for_nebulagraph">
+            <h3>Step 1 - Prepare for NebulaGraph</h3>
+            <p>The first step is to connect to NebulaGraph and set up a new space. The following code connects to NebularGraph and configure the environment.</p>
+            <pre data-type="programlisting">import os
+            
+os.environ["GRAPHD_HOST"] = "127.0.0.1"
+os.environ["NEBULA_USER"] = "root"
+os.environ["NEBULA_PASSWORD"] = "nebula" 
+os.environ["NEBULA_ADDRESS"] = "127.0.0.1:9669"  </pre>
+            <p>Then we can use nGQL, the query language for Nebula Graph, to creates a new graph space named “llamaindex” if it doesn't already exist: </p>
+            <pre data-type="programlisting">%ngql CREATE SPACE IF NOT EXISTS llamaindex(vid_type=FIXED_STRING(256), partition_num=1, replica_factor=1);
+%ngql SHOW SPACES;</pre>
+            <p>Output:</p>
+            <p>Name</p>
+            <p>—-------------</p>
+            <p>llamaindex</p>
+            <p>Graph spaces in Nebula Graph are top-level structures that store the metadata for the graph, including its vertices, edges, and configurations. Note that Vertex IDs are unique identifiers for vertices in the graph. “vid_type=FIXED_STRING(256)” specifies that the Vertex IDs in this space will be strings with a fixed length of up to 256 characters. And also, partitions are how Nebula Graph distributes data across nodes in the cluster. “partition_num=1” sets the number of partitions in the space to 1. Note that the replication factor determines the number of copies of the data that NebulaGraph will maintain for fault tolerance. A replica factor of 1 means there is no data redundancy. Finally, the output confirms that the space "llamaindex" has been successfully created using the above configuration.</p>
+            <p>In the following code, we can run the nGQL commands to define the schema of the graph database:</p>
+            <pre data-type="programlisting">%ngql CREATE TAG IF NOT EXISTS  entity(name string); <img alt="1" src="callouts/1.png" />
+%ngql CREATE EDGE IF NOT EXISTS  relationship(relationship string); <img alt="2" src="callouts/2.png" /> 
+%ngql CREATE TAG INDEX IF NOT EXISTS  entity_index ON entity(name(256)); <img alt="3" src="callouts/3.png" /></pre>
+                <p><img alt="1" src="callouts/1.png" /> A tag named “entity” is created if it doesn't already exist. Tags in Nebula Graph are used to categorize vertices in the graph.</p>
+                <p><img alt="2" src="callouts/2.png" /> An edge named “relationship” if it doesn't already exist. Edges represent relationships between vertices in Nebula Graph. The relationship edge defined here includes a single attribute, also named “relationship”, of type string. This attribute can be used to describe the nature of the relationship between two vertices.</p>
+                <p><img alt="3" src="callouts/3.png" /> An index on the entity tag if such an index does not already exist, specifically targeting the name attribute of the tag. The index is named “entity_index”. Indexes in Nebula Graph improve the efficiency of queries that filter vertices based on the indexed attributes. In this case, the index would make searches or queries that look for vertices with specific names much faster. The (256) specifies the index length, which in this case indicates that the first 256 characters of the name string will be indexed.</p>
+            <p>After setting up the schema, we can configure a connection to a NebulaGraph by specifying how the data should be structured and creating a storage context for managing this data.</p>
+            <pre data-type="programlisting">from llama_index.graph_stores import NebulaGraphStore
+from llama_index.storage.storage_context import StorageContext
+
+# Storage_context with Graph_Store
+space_name = "llamaindex" <img alt="1" src="callouts/1.png" />
+edge_types, rel_prop_names = ["relationship"], ["relationship"] <img alt="2" src="callouts/2.png" />
+tags = ["entity"] <img alt="3" src="callouts/3.png" />
+
+graph_store = NebulaGraphStore( <img alt="4" src="callouts/4.png" />
+    space_name=space_name,
+    edge_types=edge_types,
+    rel_prop_names=rel_prop_names,
+    tags=tags,
+)
+storage_context = StorageContext.from_defaults(graph_store=graph_store) <img alt="5" src="callouts/5.png" /></pre>
+
+                <p><img alt="1" src="callouts/1.png" /> "llamaindex" is used to specify the name of the space in NebulaGraph where the data will be stored.</p>
+
+                <p><img alt="2" src="callouts/2.png" /> “edge_types” and “rel_prop_names” are defined as ["relationship"] to set up the types of edges and their properties' names to be used in the graph. </p>
+
+                <p><img alt="3" src="callouts/3.png" /> "tags” defines a list of tags (i.e., categories for vertices) to be used in the graph. </p>
+
+                <p><img alt="4" src="callouts/4.png" /> A “NebulaGraphStore” object is instantiated with the specified space name, edge types, relationship property names, and tags. This object “graph_store” represents the configuration for interacting with the Nebula Graph database, specifying how data is structured within the graph.</p>
+
+                <p><img alt="5" src="callouts/5.png" /> It initializes an instance of “StorageContext” using the method “from_defaults”. This method sets up the storage context with its default configuration and links it to a previously created “graph_store”. The “storage_contex”t serves as an abstraction layer for operations on the graph data, such as inserting or querying data, by leveraging the configured “NebulaGraphStore”.</p>
+
+          </section>
+          <section data-type="sect3" id="step_2_reading_data">
+            <h3>Step 2 - Reading data </h3>
+            <p>Follow the steps outlined in Step 1 under the "Vector Store Query Engine" section to create the document folder “./document/"” and read the data from it using the following code:</p>
+            <pre data-type="programlisting">from llama_index import SimpleDirectoryReader
+            
+loader = SimpleDirectoryReader(input_dir="./document/")
+documents = loader.load_data()</pre>
+            <p>After loading the documents, we can set up and utilize the OpenAI API within the context of the Llama index, to create the service context using the code below:</p>
+            <pre data-type="programlisting">import os
+import openai
+from llama_index import ServiceContext
+from llama_index.llms import OpenAI
+
+# For OpenAI
+openai.api_key = os.environ["OPENAI_API_KEY"] <img alt="1" src="callouts/1.png" />
+llm = OpenAI(temperature=0.1, model="gpt-3.5-turbo")
+
+# define service context
+service_context = ServiceContext.from_defaults(llm=llm, chunk_size=512)<img alt="2" src="callouts/2.png" /></pre>
+                <p><img alt="1" src="callouts/1.png" /> This statement sets the OpenAI's API key. And also, an OpenAI instance “llm” is configured with a temperature setting (0.1) and model (“gpt-3.5-turbo”). The temperature parameter controls the randomness of the output, and the model parameter specifies the version of the GPT model to use.</p>
+                <p><img alt="2" src="callouts/2.png" /> It creates an instance “llm” of the “ServiceContext” class using the method “from_defaults” with default settings of the previously initialized “llm” and a “chunk_size” of 512.</p>
+            <p>The preceding steps lay the essential foundation for data storage and efficient retrieval within the graph, ensuring that the system is well-prepared for sophisticated data handling tasks. After setting up the storage and service contexts, we can use “KnowledgeGraphRAGRetriever” to create a query engine index.</p>
+          </section>
+          <section data-type="sect3" id="step_3_utilize_a_knowledgegraphragretriever_inde">
+            <h3>Step 3 - Utilize a KnowledgeGraphRAGRetriever Index </h3>
+            <p>In the next step, the comprehensive approach embodies a strategic amalgamation of Knowledge Graph and RAG methodologies, distinctly focusing on enriching the contextuality and precision of the information retrieved. The integration significantly optimizes the process of fetching relevant data, facilitating a more nuanced and accurate exploration of knowledge within graphs. The following code shows how to create the “KnowledgeGraphRAGRetriever” index :</p>
+            <pre data-type="programlisting"># create graph rag retriever using KnowledgeGraphRAGRetriever
+from llama_index.query_engine import RetrieverQueryEngine
+from llama_index.retrievers import KnowledgeGraphRAGRetriever
+
+graph_rag_retriever = KnowledgeGraphRAGRetriever( <img alt="1" src="callouts/1.png" />
+    storage_context=storage_context,
+    service_context=service_context,
+    llm=llm,
+    verbose=True,
+)
+
+kg_rag_query_engine = RetrieverQueryEngine.from_args( <img alt="2" src="callouts/2.png" />
+    graph_rag_retriever, service_context=service_context
+)
+
+response = kg_rag_query_engine.query("I'm looking for the information of Harry Potter. What could you suggest to me?") <img alt="3" src="callouts/3.png" />
+print(response)</pre>
+            <p>Output:</p>
+            <p>I suggest looking for information related to Harry Potter in a system that provides details across various aspects such as literature, movies, merchandise, and fan communities. This could include exploring books, movies, official websites, fan forums, social media pages, and dedicated fan sites to gather comprehensive information about Harry Potter and the wizarding world created by J.K. Rowling.</p>
+                <p><img alt="1" src="callouts/1.png" /> A “KnowledgeGraphRAGRetriever” instance, named “graph_rag_retriever”, is instantiated with several parameters: “storage_context”, “service_context”, “llm”, and “verbose”. This retriever requires contexts for both storage and service, as well as an instance of a language learning model, all of which have been defined by the previous steps. The “verbose” parameter was set to “True” to enable detailed logging or output. </p>
+                <p><img alt="2" src="callouts/2.png" /> A “RetrieverQueryEngine” instance “kg_rag_query_engine ” iss created from the previously defined “graph_rag_retriever” and “service_context”. This engine handles the processing of queries using the retriever instance.</p>
+                <p><img alt="3" src="callouts/3.png" /> The query engine “kg_rag_query_engine” is used to query for information about "Harry Potter". </p>
+            <p>The output is a suggestion to look for information about Harry Potter across various platforms and formats, including literature, movies, merchandise, and fan communities. This query engine provides comprehensive suggestions from obtaining information. The system recognizes the broad nature of the query and advises exploring multiple sources to get a well-rounded understanding of the topic.</p>
+            <p>The “query_engine” can transform to a “chat_engine” too. The final configuration is specifically designed to handle queries with a conversational tone, aiming to provide responses that are not only informative but also engaging and easy to understand.</p>
+            <pre data-type="programlisting">from llama_index.memory import ChatMemoryBuffer
+            
+memory = ChatMemoryBuffer.from_defaults(token_limit=1500) <img alt="1" src="callouts/1.png" />
+
+chat_engine = kg_index.as_chat_engine( <img alt="2" src="callouts/2.png" />
+    chat_mode="context",
+    memory=memory,
+    verbose=True
+)
+
+response = chat_engine.chat("I'm looking for the information of Harry Potter. What could you suggest to me?") <img alt="3" src="callouts/3.png" />
+print(response)</pre>
+            <p>Output:</p>
+            <p>Here is some information related to Harry Potter:</p>
+            <p>1. The play "Harry Potter and the Cursed Child" was co-devised by J.K. Rowling, along with director John Tiffany and playwright Jack Thorne. It has been described as a "truly game-changing production and a thrilling theatrical endeavor" with a "Dickensian sweep and momentum to the storytelling."</p>
+            <p>2. The play has received high praise for its theatrical wizardry, stunningly-realized alternative universe, and numerous coup de théâtre moments. It has been commended for being authentic to the Harry Potter universe while also offering a new and engaging experience for audiences.</p>
+            <p>3. The performances in the play have been highlighted, with actors like Sam Clemmett as Harry's son Albus, Anthony Boyle as his friend Scorpius Malfoy, and Jamie Parker as the adult Harry receiving particular acclaim for their roles.</p>
+            <p>4. Reviews from various sources like The Stage, The Times, The Guardian, and The Independent have given the play high ratings, with comments such as "magical," "out of this world," and "superb family entertainment."</p>
+            <p>If you would like more specific details or have any other questions related to Harry Potter, feel free to ask!</p>
+                <p><img alt="1" src="callouts/1.png" /> "memory" is an instance of “ChatMemoryBuffer” created with “default settings” using a specified "token_limit" of 1500. "token_limit" controls the maximum size of the conversation history or context the memory buffer can hold, measured in tokens.</p>
+                <p><img alt="2" src="callouts/2.png" /> "chat_engine" initializes a chat engine with the previously created memory buffer. The chat_mode is set to "context", indicating that the engine should use the context in generating responses. The "verbose=True" parameter enables more detailed logging and output during the engine's operation. </p>
+                <p><img alt="3" src="callouts/3.png" /> The “chat_engine” processes the query of "Harry Potter". It executes the chat interaction using the configured engine and context.</p>
+            <p>The output generated by the chat engine offers an extensive and engaging response about "Harry Potter and the Cursed Child." It includes a description of the play, highlighting its impact and labeling it a "game-changing production." The response also praises the play's theatrical elements and its authenticity to the Harry Potter world, along with spotlighting notable performances by actors. Additionally, it references reviews and ratings from reputable sources, which underscore the play's positive reception. This detailed and multifaceted response showcases the chat engine's capability to handle conversational queries effectively, providing information that is not only factual but also engaging and detailed.</p>
+          </section>
+        </section>
+      </section>
+      <section data-type="sect1" id="summary_idxKMHSg">
+        <h1>Summary</h1>
+        <p>In this chapter, we explored the concept of Retrieval-Augmented Generation (RAG) systems, which combine information retrieval and natural language generation to produce informative and contextually relevant responses. We discussed the motivation behind RAG systems, which is to mitigate the issue of hallucinations in language models by grounding their responses in factual information from external data sources.</p>
+        <p>We covered the various components of RAG systems, including index creation, which involves data preprocessing, chunking techniques, and embedding generation for vector storage. We also delved into retrieval techniques, such as keyword-based retrieval, embedding-based retrieval, and the use of knowledge graphs to enrich the retrieval process. Additionally, we discussed advanced retrieval techniques like hybrid retrieval and small-to-big retrieval.</p>
+        <p>Furthermore, we explored the generation component of RAG systems, covering different generation models and techniques for improving generation quality. We also provided an overview of RAG packages and tools, including pipeline and orchestration tools, vector databases, and graph databases. We provided examples of real-world use cases to illustrate the practical applications of these systems.</p>
+        <p>By understanding the principles and components of RAG systems, you can build more robust and reliable systems that generate accurate and informative responses grounded in factual data.</p>
+        <p>In the next chapter, we will delve into the evaluation of RAG systems. We will explore the measurement process, including retrieval relevance evaluation, LLM evaluation, and end-to-end (E2E) evaluation. Additionally, we will discuss various metrics used in these evaluations and provide a case study to illustrate the practical application of these concepts.</p>
+      </section>
+    </section>

@@ -1,0 +1,873 @@
+<section data-type="chapter" id="large_language_models_llm" xmlns="http://www.w3.org/1999/xhtml">
+<h1>Large Language Models (LLM)</h1>
+
+<aside data-type="sidebar"><h1>A Note for Early Release Readers</h1>
+<p>With Early Release ebooks, you get books in their earliest form—the author's raw and unedited content as they write—so you can take advantage of these technologies long before the official release of these titles.</p>
+
+<p>This will be the 1st chapter of the final book. Please note that the GitHub repo will be made active later on.</p>
+
+<p>If you have comments about how we might improve the content and/or examples in this book, or if you notice missing material within this chapter, please reach out to the editor at <em>rfernando@oreilly.com</em>.</p>
+</aside>
+
+<p>In this chapter we’ll delve into the fascinating world of Large Language Models (LLMs), tracing the evolution of Natural Language Processing (NLP) and culminating in the sophisticated LLMs that today shape our interaction with digital information.</p>
+
+<p>We begin by exploring the historical milestones that have paved the way for these advanced models, setting the stage for a deeper understanding of their foundational principles and attributes.</p>
+
+<p>As we navigate through the core concepts underpinning LLMs, we'll uncover the methodologies that enable these models to understand and generate human-like text, highlighting their remarkable capacity for scaling, general-purpose utility, and emergent abilities. The discussion extends into the strategic approaches of pre-training and fine-tuning, which are pivotal in enhancing LLM capabilities.</p>
+
+<p>Through a series of practical use cases, we illustrate the transformative impact of LLMs across various domains, from semantic search and content summarization to personalized recommendations and AI-assisted interactions, offering a comprehensive overview of the potential these models hold in revolutionizing our digital experiences.</p>
+
+<section data-type="sect1" id="a_brief_history_of_nlp_and_llms">
+<h1>A Brief History of NLP and LLMs</h1>
+
+<p>As we delve into the intricate world of LLMs, it becomes essential to first trace the roots and evolution of NLP. This historical exploration not only provides a foundation for understanding the current state of the art but also offers valuable insights into the challenges and breakthroughs that have shaped this dynamic field.</p>
+
+<p>Figure 1-1 delineates the evolutionary path of NLP from its inception in the 1950s to its current state. This progression can be categorized into the following four distinct stages:</p>
+
+<figure id="fig_1_a_brief_timeline_of_nlp"><img alt="A Brief Timeline of NLP" src="images/large_language_models_llm_972488_01.png" />
+<figcaption>A Brief Timeline of NLP</figcaption>
+</figure>
+
+<ul>
+	<li>
+	<p><strong>Stage 1: 1950s-1980s, AI boom and winter, and early natural language processing programs.</strong></p>
+
+	<p>Stage 1 began with the enthusiasm for AI in the 1950s, which experienced several highs, followed by a period of reduced interest and funding, due to the inability to meet high expectations. Notable works of this stage include the development of language theories, early prototypes of dialogue systems like the rule-based ELIZA, and the application of n-gram<span data-type="footnote">n-grams can refer to a language model or to a sequence of N words: 2-gram (or bigram) refers to a sequence of two words, such as "animal kingdom"; 3-gram (or trigram) refers to a sequence of three words, such as "in the zoo"; n-gram refers to a sequence of n words. The n-gram model is to give the probability of the last word given the previous n-1 words in an n-gram sequence.</span><br />
+	sequence models.</p>
+	</li>
+	<li>
+	<p><strong>Stage 2: 1980s-1990s, emergence of expert systems and statistical models.</strong></p>
+
+	<p>In the 1980s, expert systems were used for NLP, which contained hard-coded rules and ontologies (i.e., knowledge bases of facts, concepts, and their relationships about a particular domain). Expert systems were designed to emulate experts in fields such as medicine or law. Another notable work of this stage was the widespread use of statistical models due to the increase in computing resources. The Hidden Markov Model (HMM) is a statistical model used to describe a Markov process with hidden states. In NLP, HMMs were widely used for tasks such as part-of-speech tagging, tokenization, and named entity recognition.</p>
+	</li>
+	<li>
+	<p><strong>Stage 3: 2000s-2020s, neural network models and transformers.</strong></p>
+
+	<p>In the 2000s, Convolutional Neural Networks (CNNs), Recurrent Neural Network (RNNs) and Long Short Term Memory (LSTM) networks were commonly used. CNNs are mainly used to process data with a fixed shape, such as images and audio signals, but can also be applied to NLP tasks like text classification and named entity recognition. RNNs are a type of neural network that is well-suited for processing sequence data. It can handle sequences of different lengths and has memory capabilities. Typical applications of RNNs in NLP include language models, machine translation, text generation, and text summarization. LSTM networks, a specialized variant of RNNs, were designed to overcome the limitations of traditional RNNs, particularly in learning long-term dependencies. Another two notable works in this stage include Word2vec, which is an algorithm for learning word embeddings to represent the meaning of text, and transformer, which is neural model architecture best described by the seminal paper "Attention Is All You Need". Since its inception, the transformer architecture has profoundly influenced the field of deep learning, and has become the de facto framework for numerous applications.</p>
+	</li>
+	<li>
+	<p><strong>Stage 4: 2020-Present, the era of large language models (LLM).</strong></p>
+
+	<p>The popularity of chatGPT marks the era of large language models. LLMs are facilitated by massive amounts of data and powerful computational resources, LLMs achieve state-of-the-art results across diverse NLP benchmarks, and they can perform tasks like question answering, machine translation, and text generation. Users can use AI tools powered by LLMs in a wide range of tasks from writing email, reports, computer programs to planning a trip, thus improving productivity. LLMs also greatly lowers the barrier to develop chatbot applications based on private data.</p>
+	</li>
+</ul>
+
+<p>LLM families are divided based on their architecture and the roles of their components, illustrated in Figure 1-2. There are three primary families: Encoder-only, Encoder-decoder and Decoder-only.</p>
+
+<figure id="fig_2_timeline_of_encoder_only_encoder_decoder_and_deco"><img alt="Timeline of Encoder only  Encoder decoder and Decoder only LLMs" src="images/large_language_models_llm_972488_02.png" />
+<figcaption>Timeline of Encoder-only, Encoder-decoder and Decoder-only LLMs</figcaption>
+</figure>
+
+<ul>
+	<li>
+	<p><strong>Encoder-Only models</strong>, epitomized by BERT, are adept at grasping the nuances of input text, making them well-suited for analytical tasks like classification, entity recognition, and question answering. BERT's novel approach involves a Masked Language Model (MLM) that assesses the context of words by considering surrounding text in both directions, a significant departure from the unidirectional processing of earlier models. This bidirectional analysis enables a more profound understanding of context, leading to notable enhancements in NLP performance.</p>
+	</li>
+	<li>
+	<p><strong>Encoder-Decoder models</strong>, with T5 as a prime example, are tailored for tasks that involve transforming one sequence of text into another, such as translation or summarization. The encoder component digests the input sequence to form a comprehensive context vector, which the decoder then uses to craft the output text. T5 uniquely positions all NLP tasks as text-to-text conversions, simplifying the model's application across various tasks by training it to predict longer text spans, thus avoiding the need for extensive task-specific modifications.</p>
+	</li>
+	<li>
+	<p><strong>Decoder-Only models</strong>, represented by the GPT series, are primarily focused on text generation, including creative writing and text completion. Utilizing a series of decoder blocks from the transformer architecture, GPT models are trained through unsupervised learning to anticipate the subsequent word in a sequence based on the preceding context. This training approach enables GPT models to produce text that is not only coherent but also contextually aligned, facilitating their use in a broad spectrum of generative tasks.</p>
+	</li>
+</ul>
+
+<p>The development of LLMs, especially domain-specific LLMs marks a significant advancement in tailoring AI capabilities to specialized verticals such as legal, finance, medical, and coding, offering vast opportunities for innovation and efficiency.</p>
+
+<ul>
+	<li>
+	<p>In communication, media, and entertainment, LLMs enable hyper-personalization for customer experiences, augment customer support through automated question answering, and support intelligent content creation for creative narratives.</p>
+	</li>
+	<li>
+	<p>In the realm of software engineering of code generation, they facilitate code completion, automate testing, error detection, debugging, and enable the conversion of code between languages.</p>
+	</li>
+	<li>
+	<p>Financial services benefit from automating compliance data gathering, trend monitoring, predictions, and enhancing fraud detection.</p>
+	</li>
+	<li>
+	<p>Healthcare and life sciences see improvements through biomedical literature summarization, clinical trial optimization, and accelerating underwriting and claims processing in insurance.</p>
+	</li>
+	<li>
+	<p>For retail and consumer goods, LLMs offer virtual fitting rooms, optimize demand prediction, inventory management, and generate innovative product designs.</p>
+	</li>
+	<li>
+	<p>In manufacturing, these models contribute to personalized customer experiences, increase productivity, efficiency in operations, and offer prescriptive solutions for field service.</p>
+	</li>
+</ul>
+
+<p>These advancements underscore the transformative potential of LLMs across industries, driving forward personalized solutions, operational efficiency, and innovative services.</p>
+
+<p>Understanding the historical context and development trajectory of NLP and LLMs provides valuable insights into the current capabilities and future potential of these technologies. It highlights the milestones achieved, the challenges overcome, and the evolving objectives that have shaped the field.<strong> </strong>Next, we are going to dive into more details to better understand the attributes and foundational concepts of LLMs.</p>
+</section>
+
+<section data-type="sect1" id="understanding_llms">
+<h1>Understanding LLMs</h1>
+
+<p>In this section, we will delve into the remarkable attributes that set LLMs apart from traditional models. Additionally, we will explore the foundational principles and techniques that enable us to harness the full potential of these powerful models effectively.</p>
+
+<section data-type="sect2" id="llm_attributes">
+<h2>LLM Attributes</h2>
+
+<p>LLMs are distinguished by three fundamental characteristics that set them apart in the field of machine learning: large scale, general purpose, and emergent abilities.</p>
+
+<p>Their large scale refers to the massive amount of data they are trained on and the extensive number of parameters they contain, enabling them to understand and generate human-like text with remarkable accuracy. Being general purpose means that these models are not confined to specific tasks or domains; instead, they can perform a wide range of language-based tasks, across various fields without needing task-specific training. Perhaps most intriguing are their emergent abilities, which are capabilities that arise as the models scale up, such as nuanced understanding of context, analogy-making, and even some forms of reasoning.</p>
+
+<section data-type="sect3" id="large_scale_of_llms">
+<h3>Large Scale of LLMs</h3>
+
+<p>LLMs operate on a large scale. Anyone who wants to improve performance can estimate the scale of model parameters according to the Scaling Law. The Scaling Law states that model performance improves with larger scales of model parameters, training data, and computing resources, similar to Moore's Law in computing. Thus, an arms race in the AI field over the scale of model parameters, which was already underway, has entered a visible competition phase. It seems that the advent of AGI (Artificial General Intelligence) is gradually unfolding alongside the increase in the scale of model parameters.</p>
+
+<p>The scale of large language models is reflected in three dimensions: parameter scale, training samples, and training cost. The following are some numerical examples of LLM scales. It should be noted that as the field is constantly evolving, we expect the future state of the art model parameter size, training samples and cost to be different from the historical scale numbers.</p>
+
+<ul>
+	<li>
+	<p>In terms of parameter scale, BERT has 34 million parameters, GPT3 has an astonishing 175 billion parameters, and Google's PaLM model has 54 trillion parameters.</p>
+	</li>
+	<li>
+	<p>In terms of training sample data, BERT used 3.3 billion words for training, GPT3 used 300 billion tokens, and the PaLM model used 76.8 trillion tokens in training.</p>
+	</li>
+	<li>
+	<p>The training of large models usually comes with a large amount of money expenditure, such as the cost of training GPT-2 model in 2019 was 50,000 US dollars, and the cost of training PaLM model in 2022 was as high as 8 million US dollars.</p>
+	</li>
+</ul>
+
+<p>Figure 1-4 illustrates the "power law" as identified by the OpenAI team, a key concept from their 2020 paper on "Scaling Laws for Neural Language Models." This graph plots the test loss—specifically, the model's accuracy in predicting subsequent words—on the vertical axis against the logarithmic scale of computation, training data volume, and model size on the horizontal axis.</p>
+
+<figure id="fig_3_the_scaling_law"><img alt="The Scaling Law" src="images/large_language_models_llm_972488_03.png" />
+<figcaption>The Scaling Law</figcaption>
+</figure>
+
+<p>This visual representation encapsulates the relationship between these variables and the model's performance, highlighting the foundational scaling principles that guide the development of more efficient and accurate Large Language Models:</p>
+
+<ul>
+	<li>
+	<p>The rightmost graph in the series delves into how the performance of Large Language Models (LLMs) correlates with model size, assuming ample data and computational resources to prevent overfitting. By extensively training models to near convergence on a vast dataset, the study ensures that the observed performance truly reflects each model's potential. This analysis reveals a power law relationship between model size and performance, indicating that enlarging the model consistently reduces test loss, albeit with diminishing returns for very large models.</p>
+	</li>
+	<li>
+	<p>The central graph shifts focus to the influence of training data volume on model performance, holding model size constant to isolate this effect. Through the use of early stopping to avoid overfitting, the study examines how varying the dataset size impacts the model's accuracy and generalization. The findings confirm a power law relationship here as well, underscoring the significant role of data volume in enhancing model performance.</p>
+	</li>
+	<li>
+	<p>The leftmost graph undertakes a nuanced examination of the impact of computational resources on LLM performance, in a context where data is sufficient to preclude overfitting and models are in a state of "parameter deficiency," suggesting they could benefit from additional parameters. By considering the total computational effort, including both model size and training duration, this analysis offers insights into the optimal allocation of computational resources. The key takeaway is that, within a set computational budget, investing in larger models generally leads to more substantial performance gains than extending the training period of smaller models.</p>
+	</li>
+</ul>
+</section>
+
+<section data-type="sect3" id="general_purpose_models">
+<h3>General-purpose models</h3>
+
+<p>Unlike traditional NLP models that require specialized training for each task, LLMs can handle a wide array of tasks. As shown in Figure 1-5, we can use LLMs to do various natural language tasks just by providing prompts without any samples. This shift is notably demonstrated by the capability for zero-shot learning, where LLMs can perform tasks without any task-specific examples, simply by interpreting natural language prompts. It relies on the model's generalization ability from existing knowledge to new tasks. This groundbreaking approach was prominently featured in the GPT models, which showcased remarkable proficiency across various domains in a zero-shot manner. This included achieving advanced results in commonsense reasoning, reading comprehension, summarization, translation, and question-answering. The implication is profound: LLMs can now offer versatile, adaptable solutions for a range of NLP tasks with minimal to no task-specific data, paving the way for more efficient, broadly capable AI systems.</p>
+
+<figure id="fig_4_general_purpose_models"><img alt="General purpose models " src="images/large_language_models_llm_972488_04.png" />
+<figcaption>General-purpose models</figcaption>
+</figure>
+</section>
+
+<section data-type="sect3" id="emergent_abilities">
+<h3>Emergent Abilities</h3>
+
+<p>LLMs show emergent abilities in generating coherent and contextually relevant text across various domains, despite not being explicitly programmed with the rules of language or the knowledge about these domains. The emergent abilities of LLMs have indeed shown remarkable capabilities that distinguish them from smaller models. These abilities are particularly evident in the context of the prompting paradigm, where a model generates responses based on a given prompt without any additional training or updates to its parameters. The emergence capabilities of LLMs are from three key areas: In-Context Learning (ICL), Instruction Following, and Chain-of-Thought (CoT) reasoning. All three methods belong to the “Prompt Engineering” technique, which we are going to discuss in more detail in the next section.</p>
+
+<figure id="fig_5_emergent_abilities"><img alt="Emergent Abilities" src="images/large_language_models_llm_972488_05.png" />
+<figcaption>Emergent Abilities</figcaption>
+</figure>
+</section>
+</section>
+
+<section data-type="sect2" id="llm_foundations">
+<h2>LLM Foundations</h2>
+
+<p>As we transition from the basic building blocks of text tokenization to the advanced capabilities of knowledge retrieval, it becomes evident that LLMs are not just tools for processing language but sophisticated systems capable of learning, understanding, and generating human-like text.</p>
+
+<p>There are four principal approaches that can be employed to harness the full potential of LLMs. Illustrated in Figure 1-3, they showcase the versatility and power of LLMs in solving complex language tasks, from prompt engineering and retrieval augmented generation to supervised fine-tuning and building models from scratch. Each approach offers a unique pathway to leverage the vast knowledge and capabilities embedded within LLMs, marking a significant leap forward in our quest to bridge the gap between human and machine communication.</p>
+
+<figure id="fig_6_how_to_get_the_most_out_of_llms"><img alt="How to get the most out of LLMs" src="images/large_language_models_llm_972488_06.png" />
+<figcaption>How to get the most out of LLMs</figcaption>
+</figure>
+
+<section data-type="sect3" id="prompt_engineering">
+<h3>Prompt Engineering</h3>
+
+<p>Prompting is a transformative approach in leveraging pre-trained LLMs for Zero-Shot and Few-Shot learning tasks. This technique involves crafting input prompts that guide the model to perform specific tasks without extensive task-specific training, enabling models to apply their vast pre-trained knowledge to new problems with minimal additional data. In <em>Zero-Shot Learning</em>, the model is presented with a task it has not explicitly been trained for. <em>Few-Shot Learning</em> takes this a step further by providing the model with a small number of examples (or "shots") to illustrate the task.</p>
+
+<section data-type="sect4" id="in_context_learning_icl">
+<h4>In-Context Learning (ICL)</h4>
+
+<p>In-Context Learning refers to the model's ability to adapt its responses based on the examples or context provided within the prompt. In ICL, zero-shot and few-shot learning techniques that allow models to effectively learn from limited or no data samples. Zero-shot learning, as discussed in the previous section, enables models to undertake tasks without any prior training examples, showcasing their adaptability of language tasks. Similarly we introduced few-shot learning, which empowers models to learn from just a handful of training examples. Brown et al. (2020) were instrumental in proposing few-shot learning, which cleverly incorporates several input-output examples directly into the model's context as a preliminary step, subsequently prompting the model to apply this learned context to perform tasks on new, unseen inference examples. This methodology underscores the remarkable versatility and learning efficiency, enabling them to generate meaningful predictions with minimal data input.</p>
+</section>
+
+<section data-type="sect4" id="instruction_following">
+<h4>Instruction following</h4>
+
+<p>Instruction Following is an emergent ability that enables LLMs to comprehend and execute tasks described in natural language instructions. By following instructions, LLMs can adapt to perform tasks they were not explicitly trained for. Instruction fine-tuning by mixing tasks in the form of instructions has been shown to enable language models to make appropriate responses to instructions describing unseen tasks. The study by Wei et al. (2022), as illustrated in Figure 1-6 right, reveals that instruction following markedly enhances the performance of LLMs, particularly those with approximately 100 billion parameters. This finding indicates the existence of a critical threshold in model size, beyond which the ability to follow instructions and execute tasks significantly increases. However, Sanh et al. (2022) soon found that the instruction following behavior could be induced by fine-tuning a smaller encoder-decoder T5 model. This evolving understanding of instruction following underscores the importance of model design, training strategies, and the potential for even more sophisticated emergent behaviors as research in this area progresses.</p>
+</section>
+
+<section data-type="sect4" id="chain_of_thought_reasoning_cot">
+<h4>Chain-of-Thought reasoning (CoT)</h4>
+
+<p>The concept of CoT reasoning represents a significant advancement in the emergent abilities of LLMs. This strategy enhances the models' problem-solving capabilities by guiding the language models to articulate a sequence of intermediate steps or thoughts before arriving at the final answers. Such an approach mirrors human problem-solving processes, where complex tasks are broken down into smaller, more manageable parts. As demonstrated in Figure 1-5 left, applying CoT prompting to models with approximately 100 billion parameters significantly outperforms traditional prompting methods that do not involve intermediate steps. This performance boost is also observed with the addition of just a few CoT prompts, as well as when explanations are provided after the final answer, as noted by Lampinen et al. (2022). By leveraging CoT reasoning, we can enhance the problem-solving abilities of LLMs, making them more effective tools for a wide range of applications. This approach also opens up new possibilities for improving the interpretability and reliability of model outputs, making LLMs more user-friendly and trustworthy.</p>
+</section>
+</section>
+
+<section data-type="sect3" id="retrieval_augmented_generation_rag">
+<h3>Retrieval augmented generation (RAG)</h3>
+
+<p>This approach enhances LLMs by integrating a retrieval system that fetches relevant information from vast online resources or specialized corporate databases. By incorporating these search results into the model's input prompts, it becomes possible to tailor the LLM's responses more accurately to specific queries or tasks. This method effectively combines the depth of LLMs with the breadth of external data sources, enriching the model's output with up-to-date and contextually relevant information.</p>
+
+<p>While we introduce the concept of RAG here, we will delve into more comprehensive details on this approach starting in Chapter 2. The rest of this book is dedicated to an in-depth exploration of RAG, its underlying components, implementation strategies, and real-world applications.</p>
+</section>
+
+<section data-type="sect3" id="fine_tuning">
+<h3>Fine-Tuning</h3>
+
+<p>Fine-tuning is a technique used to adapt a pre-trained language model to a specific task or domain by further training it on a relevant dataset. The pre-trained model serves as a starting point, and the fine-tuning process updates the model's parameters to better align with the target task or data distribution.</p>
+
+<p>A lot of existing cloud services already allow the user to fine-tune a model with users' specific dataset. There are two main issues with SFT. Firstly, the objective of SFT may differ from the model's original training goal, with examples including the shift from next-word prediction to utilizing human feedback and instruction fine-tuning, which diverges from the initial pre-training focus. Secondly, the risk of overfitting. As the datasets used for fine-tuning are generally much smaller than those used for initial training, requiring careful adjustment of the learning rate to avoid compromising the model's generalizability.</p>
+
+<p>In NLP tasks, we can select an appropriate model to fine-tune according to different requirements and conditions, so that the fine-tuned model can better adapt to a specific task or domain. Fine-tuning is a transfer Learning technique that adjusts the weights of a pre-trained language model according to a specific task to achieve better performance on that task. The specific operations include:</p>
+
+<ul>
+	<li>
+	<p>Specifying the task or domain that the model fine-tuning hopes to optimize, and selecting the appropriate learning paradigm: supervised learning, weakly supervised or reinforcement learning from human feedback; these different learning paradigms can be used to complete the fine-tuning.</p>
+	</li>
+	<li>
+	<p>Selecting a pre-trained model (such as BERT, GPT, etc.) and importing the corresponding pre-trained weights.</p>
+	</li>
+	<li>
+	<p>Preparing task-related training data and labels.</p>
+	</li>
+	<li>
+	<p>Using task data to fine-tune the pre-trained model, usually by adjusting hyperparameters such as learning rate, optimizer, regularization or freezing early layers.</p>
+	</li>
+	<li>
+	<p>Evaluating the model's performance on the validation or test set, and iteratively optimizing as needed.</p>
+	</li>
+</ul>
+
+<p>Supervised Fine-Tuning (SFT), as mentioned in the previous section, is a critical step in customizing pre-trained LLMs such as GPT-4 for particular tasks or datasets. This process involves various strategies, each with its advantages, applications, and execution methods.</p>
+
+<dl>
+	<dt>Full Fine-Tuning</dt>
+	<dd>
+	<p>This approach entails adjusting every parameter within a pre-trained model to better align it with the specific requirements of a new task or dataset. While Full Fine-Tuning offers a thorough adaptation of the model to new contexts, it demands significant computational resources, making it a costly option in terms of processing power and time. We are going to introduce more details of pre-training in the next section.</p>
+	</dd>
+	<dt>LoRA (Low-Rank Adapters)</dt>
+	<dd>
+	<p>LoRA stands as a Parameter-Efficient Fine-Tuning (PEFT) method, which integrates trainable low-rank matrices within the model. These matrices serve to fine-tune the model's existing weights in a subtle manner, thus avoiding extensive alterations to the original parameters. This technique strikes a balance between adaptability and efficiency, enabling significant model customization with minimal increase in parameter count.</p>
+	</dd>
+	<dt>QLoRA (Quantized LoRA)</dt>
+	<dd>
+	<p>Building upon LoRA, QLoRA incorporates quantization into the fine-tuning process, reducing the precision of the model's weights to make the model more memory-efficient. This approach not only retains the adaptability benefits of LoRA but also makes it more feasible to deploy these models on platforms with limited computational resources, such as Google Colab.</p>
+	</dd>
+	<dt>DeepSpeed</dt>
+	<dd>
+	<p>Developed by Microsoft, DeepSpeed is a framework designed to facilitate the efficient training of LLMs across multi-GPU and multi-node environments. This technology is particularly valuable for managing the substantial computational demands of models like GPT-4, offering optimized training processes that can scale effectively across extensive hardware setups.</p>
+	</dd>
+</dl>
+
+<p>Each of these SFT approaches caters to different needs and constraints. Full Fine-Tuning provides a comprehensive but resource-intensive method, LoRA and QLoRA offer parameter-efficient alternatives that balance performance with computational efficiency, and DeepSpeed addresses the challenges of training at scale. The choice among these methods depends on the specific requirements of the task, available computational resources, and desired balance between efficiency and adaptability.</p>
+</section>
+
+<section data-type="sect3" id="pre_training">
+<h3>Pre-Training</h3>
+
+<p>Pre-training is a foundational step in the development of Large Language Models (LLMs), where the model is initially trained on vast amounts of text data. This phase is designed to equip the model with a broad understanding of human language, enabling it to grasp syntax, semantics, and the nuanced relationships between words and phrases. The objective during pre-training is for the model to learn general language patterns and structures from diverse sources such as Wikipedia, news articles, and web content, without focusing on any specific task. For example, BERT is pre-trained for mask language prediction and next sentence prediction. ChatGPT is pre-trained for next word prediction.</p>
+
+<p>As shown in Figure 1-7, pre-training and fine-tuning typically employ a two-stage approach: first, they learn about human language by leveraging large-scale text datasets such as Wikipedia, news articles, or web content to complete the pre-training of the model. Then, according to the specific task objective, the pre-trained model is fine-tuned in order to achieve better performance on this task.</p>
+
+<figure id="fig_7_pre_training_and_fine_tune_llms"><img alt="Pre training and Fine tune LLMs" src="images/large_language_models_llm_972488_07.png" />
+<figcaption>Pre-training and Fine-tune LLMs</figcaption>
+</figure>
+
+<p>Developing LLMs from the ground up is an endeavor marked by significant financial and technical demands, often running into millions of dollars due to the need for substantial computational power. This process not only requires a deep understanding of complex neural network architectures but also a commitment to ongoing research and development. As a result, creating custom LLMs is typically reserved for organizations with substantial resources and specialized expertise in the field of artificial intelligence.</p>
+
+<p>When training a model, we need to define a learning task for the model. Some typical tasks, as mentioned earlier, include predicting the next word or learning to reconstruct masked words.. The paper by Kaili S. in 2022, titled “A Survey of Pre-trained Language Models for Natural Language Processing,” provides an extensive overview of pre-training tasks, which can be summarized as follows:</p>
+
+<ul>
+	<li>
+	<p>Language Modeling (LM): predicting the next token (in the case of unidirectional LM) or the preceding and following tokens (in the case of bidirectional LM).</p>
+	</li>
+	<li>
+	<p>Masked Language Modeling (MLM): masking some tokens from the input sentence and then training the model to predict the masked tokens from the remaining tokens.</p>
+	</li>
+	<li>
+	<p>Permuted Language Modeling (PLM): same as LM, but on randomly permuted input sequences. Randomly sample a permutation and then select some tokens as targets, training the model to predict these targets.</p>
+	</li>
+	<li>
+	<p>Contrastive Learning (CL): learning a score function for text pairs by assuming that certain observed text pairs are more semantically similar than randomly sampled text pairs, which includes the following key components:</p>
+
+	<ul>
+		<li>
+		<p>Deep InfoMax (DIM): maximizing mutual information between image representations and local image regions;</p>
+		</li>
+		<li>
+		<p>Replaced Token Detection (RTD): given the surrounding context, predicting whether a token has been replaced;</p>
+		</li>
+		<li>
+		<p>Next Sentence Prediction (NSP): training the model to distinguish between two input sentences being consecutive segments in the training corpus;</p>
+		</li>
+		<li>
+		<p>Sentence Order Prediction (SOP): similar to NSP, but using the same segments with swapped order as negative examples.</p>
+		</li>
+	</ul>
+	</li>
+</ul>
+
+<p>For example, in the pre-training stage, BERT utilizes a large amount of unlabeled data to learn a general language representation, pre-training the model through two different tasks: MLM and NSP. By pre-training tasks, we can utilize a large amount of unlabeled data to improve the generalization ability and performance of the model when training natural language processing models. These tasks can usually be combined with supervised learning tasks to fine-tune the model and adapt to specific application scenarios. In practical applications, we need to select appropriate pre-training tasks according to task requirements and data characteristics to train the model.</p>
+
+<p>In practice, the selection of pre-training tasks often depends on data type, task requirements and computing resources. Choosing the right pre-training tasks can make the model better capture the semantic and structural information in the data, thus improving the performance of the model in downstream tasks. For example, in scenarios where a large amount of unsupervised text data needs to be processed, LM and MLM tasks are more common choices, as they can learn the grammar and semantic rules in the text data well. For multimodal tasks combining images and texts, DIM may be a more suitable choice, as it can learn the mutual information between images and texts.</p>
+</section>
+</section>
+</section>
+
+<section data-type="sect1" id="llm_use_cases">
+<h1>LLM Use Cases</h1>
+
+<p>Let’s look at a few use cases to solidify your understanding of how LLMs can be used.</p>
+
+<section data-type="sect2" id="semantic_search">
+<h2>Semantic Search</h2>
+
+<p>With the advent of LLMs, there is a transformative shift in semantic search capabilities across diverse contexts. Each application context leverages the core strengths of LLMs, their deep understanding of language semantics, context, and intent, but in ways tailored to the specific needs of that domain. For instance, in academic literature searches, LLMs can dissect complex research queries and provide summaries or relevant citations, addressing the unique demand for depth and precision in scholarly work. In database querying, these models translate natural language queries into structured database queries, simplifying data access for non-technical users. In customer service, LLMs enhance question-answering systems by matching customer inquiries with accurate, context-aware responses. In each of these contexts, the application of LLMs goes beyond mere keyword matching. The multifaceted applicability of LLMs in semantic search not only demonstrates versatility but underscores their potential to transform the interaction and retrieval of information across various domains. Chapter 4 will provide more comprehensive details.</p>
+
+<p>Before the advent of LLMs, the foundation of many search systems was primarily based on keyword search, which involves comparing the number of words shared between the query and the documents for relevance assessment. In 1935, the renowned British linguist J.R. Firth stated: 'The complete meaning of a word is always contextual, and no study of meaning apart from context can be taken seriously.' Advancing 80 years to 2013, the concept of word vectors, or embeddings, gained prominence. An embedding is a method for associating a numerical vector with each piece of text. Semantic search consists of finding the closest documents to the query in the space of embeddings.</p>
+
+<p>Let’s work with the Hugging Face 'xsum dataset’, which comprises a collection of BBC articles and their corresponding summaries. This dataset serves as the foundation for semantic search tasks. As a case study, we use the FAISS (Facebook AI Similarity Search) library to perform a similarity search for documents based on their embeddings.</p>
+
+<p>In our document, the code snippets are encapsulated within grey boxes, symbolizing input segments. Meanwhile, output is presented in green boxes, delineating the responses generated by the preceding code. Here's a description of the process and the results:</p>
+
+<section data-type="sect3" id="step_1_reading_and_preprocessing_data">
+<h3>Step 1 - Reading and preprocessing data</h3>
+
+<p>The first step to performing a similarity search involves reading and pre-processing data. The code for this is shown as follows:</p>
+<div data-type="example">
+<pre data-type="programlisting">
+from datasets import load_dataset
+
+# Load dataset
+xsum_dataset = load_dataset(
+   "xsum", version="1.2.0"
+) 
+# Taking a sample of 1000 rows
+xsum_sample = xsum_dataset["train"].select(range(1000)).to_pandas()
+
+# Combining 'document' and 'summary' columns
+xsum_sample["combined"] = (
+    "Document: " + xsum_sample.document.str.strip() + "; Summary: " + xsum_sample.summary.str.strip()
+)</pre>
+</div>
+
+<p>This dataset provides 3 columns: id (article ID), document (the BBC article text) and summary: a "ground-truth" summary. We combine ‘document’ and ‘summary’ together to become the text for embedding.</p>
+</section>
+
+<section data-type="sect3" id="step_2_vectorize_text_into_embedding_vector">
+<h3>Step 2 - Vectorize text into embedding vector</h3>
+
+<p>The next step involves vectorizing the text into an embedding vector. We will be using the ‘sentence-transformers’ library to load a pre-trained model to vectorize our text into embeddings. The code is shown as follows:</p>
+<div data-type="example">
+<pre data-type="programlisting">
+from sentence_transformers import SentenceTransformer
+
+# Encoding the data
+encoder = SentenceTransformer("paraphrase-mpnet-base-v2")
+encoded_data = encoder.encode(xsum_sample["combined"])</pre>
+</div>
+
+<p>An encoder object is created using a specific pre-trained model (‘paraphrase-MiniLM-L6-v2’). This model is designed to paraphrase sentences, and it's likely trained to capture semantic meaning effectively. For each row in the DataFrame ‘xsum_sample’, it applies the encoder's encode method to the text in the ‘combined’ column, which contains concatenated document and summary text. The encode method converts the text into a high-dimensional vector that semantically represents the input text. The output shown is the ’encoded_data’, where each entry in this column is a list of floating-point numbers representing the vectorized form of the corresponding text.</p>
+</section>
+
+<section data-type="sect3" id="step_3_saving_embedding_vectors_to_faiss_index">
+<h3>Step 3 - Saving embedding vectors to FAISS index</h3>
+
+<p>Vector libraries are often sufficient for small, static data. Since it's not a full-fledged database solution, it doesn't have the CRUD (Create, Read, Update, Delete) support. Once the index has been built, if there are more vectors that need to be added/removed/edited, the index has to be rebuilt from scratch. Vector libraries are easy, lightweight, and fast to use. Examples of vector libraries are <a href="https://faiss.ai/">FAISS</a>, <a href="https://github.com/google-research/google-research/tree/master/scann">ScaNN</a>, <a href="https://github.com/spotify/annoy">ANNOY</a>, and <a href="https://arxiv.org/abs/1603.09320">HNSM</a>. FAISS has several ways for similarity search, e.g. L2 (Euclidean distance), cosine similarity. The code to save embedding vectors FAISS index is as follows:</p>
+<div data-type="example">
+<pre data-type="programlisting">
+import faiss
+
+index = faiss.IndexIDMap(faiss.IndexFlatIP(768))
+faiss.normalize_L2(encoded_data)
+index.add_with_ids(encoded_data, np.arange(len(encoded_data)))</pre>
+</div>
+
+<p>Here we create a ‘faiss’ index for cosine similarity searches. It combines IndexIDMap and IndexFlatIP for small datasets with 768-dimensional vectors. The code normalizes the encoded data and populates the index while associating each entry with document IDs from the encoded_data.</p>
+</section>
+
+<section data-type="sect3" id="step_4_search_for_relevant_documents">
+<h3>Step 4 - Search for relevant documents</h3>
+
+<p>The next step is to search for relevant documents. The code and results are as follows:</p>
+<pre data-type="programlisting">
+search_text = "Harry Potter"
+search_vector = encoder.encode(search_text)
+_vector = np.array([search_vector])
+faiss.normalize_L2(_vector)
+distances, ann = index.search(_vector, k=1)
+results = pd.DataFrame({'distances': distances[0], 'ann': ann[0]})
+print(xsum_sample["summary"][results['ann'][0]])</pre>
+
+<p>Output:</p>
+
+<blockquote>
+<p>'Harry Potter and the Cursed Child has won five-star reviews from critics, with one describing it as "a game-changing production".'</p>
+</blockquote>
+
+<p>As a final step, we create a simple search function for finding the most similar documents to the given text. First, it converts the search text into a numerical vector and normalizes it. Then, use a Faiss index to identify the top matching documents. It yields a list of the most similar documents, each accompanied by their cosine similarity scores. The value of 'k' is adjustable. Setting 'k' to 1, for instance, means that the most similar results are returned.</p>
+
+<p>In this case, we obtained cosine similarity scores of 0.59. This metric reflects the degree of similarity between the texts in comparison to our search query, highlighting documents that align most closely. Specifically, our search focused on finding news related to "Harry Potter." The fact that the summary of the resultant news mentioned "Harry Potter" indicates a certain level of relevance. To further refine and enhance the accuracy of our search methodology, we will delve into alternative strategies to optimize the semantic search approach in Chapter 4.</p>
+</section>
+</section>
+
+<section data-type="sect2" id="summarization_classification">
+<h2>Summarization/Classification</h2>
+
+<p>The objective of text summarization is to condense a lengthy text into a brief version that retains all pertinent facts. This task is more complex than semantic search as it necessitates the model to generate coherent and concise text that encapsulates the core information. Text classification, on the other hand, involves categorizing text into one or more predetermined categories, ranging from thematic sorting to spam detection and sentiment analysis. Before LLMs, text summarization was primarily achieved through extractive methods, which involved selecting key sentences from the original text based on statistical techniques or rule-based systems. Text classification also relied on rule-based categorization, where texts were sorted based on the presence of specific keywords or patterns. Additionally, machine learning models such as Naive Bayes, Support Vector Machines, and Decision Trees were employed, utilizing handcrafted features like bag-of-words and TF-IDF vectors. These pre-LLM techniques, while effective to a degree, lacked the sophistication and generalizability that LLMs offer, as they could not fully grasp the nuances of natural language.</p>
+
+<p>LLMs surpass traditional methods in text summarization and classification by leveraging their advanced understanding of language nuances. In other words, LLMs generate succinct summaries by understanding and reproducing the essence of large texts. This not only aids in grasping the core messages without reading the entirety but also in maintaining the context and coherence that traditional methods might miss. In classification, LLMs excel by inherently understanding the context and subtleties of language, a significant leap from the rule-based and feature-dependent approaches of the past. Where traditional machine learning models relied on manual feature engineering and keyword spotting, LLMs intuitively categorize text, with a higher degree of accuracy and minimal human intervention. The adeptness of LLM models at deciphering subtle aspects of language ensures both the precision and efficiency of information categorization. This aptitude for language processing makes LLMs far more effective, marking a revolutionary advancement.</p>
+
+<p>As a case study, this section derives a summary of the "Harry Potter" related news identified previously. It highlights a play penned by Jack Thorne, which unfolds 19 years following the conclusion of the seventh and final book in J.K. Rowling's iconic series. The production is set to make its official debut at the Palace Theatre, located in the vibrant West End of London. There is a collective call to critics and viewers to exercise discretion, presumably to safeguard the narrative's plot twists and ensure an untainted experience for future audiences. This theatrical endeavor seems to extend the Harry Potter narrative, venturing into events that transpire nearly two decades after the series' end, thus offering a new chapter in the beloved saga.</p>
+
+<p>Let’s see how one of the most popular transformer models, T5 model, summarizes the above news. LLMs essentially operate on the principle of generating text by predicting the next token in a sequence, aiming to produce a series of tokens with the highest probability of coherency and relevance. This process is fundamentally a massive search through the potential sequences of tokens. To navigate this search efficiently, LLMs employ two primary strategies:</p>
+
+<ul>
+	<li>
+	<p>Search: This method involves determining the next token based on the highest probability following the sequence generated thus far.</p>
+
+	<ul>
+		<li>
+		<p>Greedy Search: The simplest form of search, where the model always chooses the single most likely next token. While this is computationally efficient, it can lead to repetitive and predictable text.</p>
+		</li>
+		<li>
+		<p>Beam Search: An enhancement over greedy search, beam search considers multiple high-probability sequence paths simultaneously, expanding the search space. This is controlled by the ‘num_beams parameter’, allowing the model to explore a set number of alternative paths before deciding on the most probable sequence.</p>
+		</li>
+	</ul>
+	</li>
+	<li>
+	<p>Sampling: Instead of always choosing the most likely next token, sampling introduces randomness by selecting the next token from a probability distribution.</p>
+
+	<ul>
+		<li>
+		<p>Top-k Sampling: This method restricts the sampling pool to the top 'k' most likely tokens, as determined by the top_k parameter. It strikes a balance between randomness and likelihood to increase diversity in the generated text.</p>
+		</li>
+		<li>
+		<p>Top-p Sampling (Nucleus Sampling): This approach samples from the smallest set of tokens whose cumulative probability exceeds the threshold 'p', set by the top_p parameter. It effectively prevents the model from considering highly improbable tokens, focusing on a "nucleus" of plausible options.</p>
+		</li>
+		<li>
+		<p>The parameter “do_sample” toggles between deterministic search (off) and probabilistic sampling (on), allowing users to choose between more predictable or more varied text outputs.</p>
+		</li>
+	</ul>
+	</li>
+</ul>
+
+<p>These methods are crucial for LLMs to produce text that is not only contextually appropriate but also diverse and interesting, avoiding the pitfalls of overfitting to the most common sequences in the training data. Here's a description of the process and the results:</p>
+
+<section data-type="sect3" id="step_1_reading_data">
+<h3>Step 1 - Reading data</h3>
+
+<p>The first step of reading data is identical to the process described in “Step 1 - Reading and Pre-processing Data” of the “Semantic Search” section.</p>
+</section>
+
+<section data-type="sect3" id="step_2_use_t5_model_to_summarize_the_documents">
+<h3>Step 2 - Use T5 model to summarize the documents</h3>
+
+<p>The second step is to use the T5 model to summarize the documents. The code and results are listed as follows:</p>
+<pre data-type="programlisting">
+summarizer = pipeline(
+    task="summarization",
+    model="t5-small",
+    min_length=20,
+    max_length=60,
+    truncation=True,
+) 
+summarizer(xsum_sample["document"][results['ann'][0]])</pre>
+
+<p>Output:</p>
+
+<blockquote>
+<p>[{'summary_text': 'the play, written by Jack Thorne, is set 19 years after the seventh and final book in the series by JK Rowling . it opens officially at the palace theatre, in London\'s west end, on Saturday . critics have been urged to "keep the'}]</p>
+</blockquote>
+
+<p>We employ a specialized summarization pipeline using the pipeline function from the Hugging Face transformers library, meticulously configured as follows:</p>
+
+<ul>
+	<li>
+	<p>The model used is "t5-small", which is a smaller variant of the T5 model and suitable for tasks like summarization.</p>
+	</li>
+	<li>
+	<p>The “min_length” is set to 20, meaning the summary produced will have a minimum of 20 tokens.</p>
+	</li>
+	<li>
+	<p>The “max_length” is set to 60, capping the summary at a maximum of 60 tokens.</p>
+	</li>
+	<li>
+	<p>“truncation=True” indicates that input texts longer than the model's maximum length will be truncated.</p>
+	</li>
+	<li>
+	<p>It produces a summary text that is different from the original, indicating that the model has generated an abstractive summary, which is its own interpretation of the most important content of the document.</p>
+	</li>
+</ul>
+</section>
+
+<section data-type="sect3" id="step_3_apply_search_and_sampling_in_inference">
+<h3>Step 3 - Apply search and sampling in inference</h3>
+
+<p>The third step involves applying search and sampling in inference. The following sections display a series of distinct argument scenarios, each executed through specific code respectively. The outcomes of these executions are then showcased, illustrating the varied results derived from each unique set of arguments.</p>
+<pre data-type="programlisting">
+# We can instead do a beam search by specifying num_beams.
+summarizer(xsum_sample["document"][results['ann'][0]], num_beams=10)</pre>
+
+<p>Output:</p>
+
+<blockquote>
+<p>[{'summary_text': 'the play, written by Jack Thorne, is set 19 years after the seventh book in the series by JK Rowling . it opens officially at the palace theatre, in London\'s west end, on sunday . critics have been urged to "keep the secrets'}]</p>
+</blockquote>
+
+<p>The first scenario uses the beam search strategy by setting “num_beams=10”. This means that the model keeps track of 10 different sequence paths during decoding, which can potentially lead to more diverse and coherent summaries.</p>
+<pre data-type="programlisting">
+# Alternatively, we could use sampling.
+summarizer(xsum_sample["document"][results['ann'][0]], do_sample=True)</pre>
+
+<p>Output:</p>
+
+<blockquote>
+<p>[{'summary_text': 'the play, written by Jack Thorne, opens at the palace theatre on saturday . it shows the stars of the wizarding saga as adults in their mid-30s as their own children head off to school . critics have been urged to "keep'}]</p>
+</blockquote>
+
+<p>The second block uses sampling for summarization by setting “do_sample=True”. This allows the model to randomly pick the next word based on the probability distribution of the possible next words, leading to more varied and possibly more human-like summaries.</p>
+<pre data-type="programlisting">
+# We can modify sampling to be more greedy by limiting sampling to the top_k or top_p most likely next tokens.
+summarizer(xsum_sample["document"][results['ann'][0]], do_sample=True, top_k=10, top_p=0.8)</pre>
+
+<p>Output:</p>
+
+<blockquote>
+<p>[{'summary_text': 'the play, written by Jack Thorne, opens at the palace theatre on sunday . it shows the stars of the wizarding saga as adults in their mid-30s as their own children head off to school . critics have been urged to "keep the secrets'}]</p>
+</blockquote>
+
+<p>The third block further refines the sampling method by introducing “top_k=10” and “top_p=0.8” parameters.” top_k=10” means that the model only considers the top 10 most probable next words when sampling. “top_p=0.8” means that the model samples from the smallest set of words whose cumulative probability exceeds 80%, which helps to focus the model on high-probability words while still allowing for diversity.</p>
+
+<p>All three results are aligned with the original news, and also show how varying parameters can influence the creativity and diversity of the generated outputs. The uniformity in performance across diverse methodologies highlights the model's robust comprehension of textual content. Additionally, we note incremental enhancements in outputs resulting from carefully tailored statements, further affirming the adaptability and sophistication of LLMs.</p>
+</section>
+</section>
+
+<section data-type="sect2" id="personalized_recommendations">
+<h2>Personalized Recommendations</h2>
+
+<p>As e-commerce platforms continue to grow and amass larger user bases, the role of recommender systems becomes increasingly complex yet essential. In Chapter 5, we delve into the recommendation systems, focusing on two key stages: retrieval and ranking. The retrieval stage involves selecting thousands of items from a vast recommendation pool to forward to the ranking module. The retrieval process typically adopts a multi-channel approach, differentiating between non-personalized and personalized recalls. Personalized retrieval employs various methods like content-based, behavior-based, and feature-based techniques. The ranking models need to sort items based on their relevance to the current user and then truncate accordingly. It involves careful consideration of user-specific features, the integration of advanced retrieval designs, and the selection of high-performance algorithms. These elements work in concert to refine the pool of recommendations, ensuring that each user receives the most relevant and personalized content suggestions.</p>
+
+<p>The integration of LLMs in recommendation systems heralds new applications in providing highly relevant and diverse products or content suggestions to users. Based on the rich semantic understanding of LLMs, utilizing LLMs into recommendation frameworks, the system can analyze customer behaviors and preferences with unprecedented depth. This integration allows for a nuanced understanding of user interactions, text-based feedback, and even subtle linguistic cues that traditional models might overlook.</p>
+
+<p>Let's continue using the Hugging Face 'xsum dataset’ to build a simple recommendation system, leveraging the embeddings and conversational models of OpenAI and LangChain. The idea is to build a recommendation system that is able to suggest articles to a user who interacts for the first time with the system, the so-called cold start. Here's a description of the workload and the results:</p>
+
+<section data-type="sect3" id="step_1_reading_and_preprocessing_data_2">
+<h3>Step 1 - Reading and preprocessing data</h3>
+
+<p>The first step of reading data is identical to the process described in “Step 1 - Reading and Pre-processing Data” of the “Semantic Search” section.</p>
+</section>
+
+<section data-type="sect3" id="step_2_data_preprocessing">
+<h3>Step 2 - Data Preprocessing</h3>
+
+<p>The second step is to process data before vectorization. The code is listed as follows:</p>
+<pre data-type="programlisting">
+import tiktoken
+import openai
+
+# encoding the data
+xsum_sample["combined_info"] = (
+    "Document: " + xsum_sample.document.str.strip() + "; Summary: " + xsum_sample.summary.str.strip()
+)
+embedding_encoding = "cl100k_base" 
+max_tokens = 8000  
+encoding = tiktoken.get_encoding(embedding_encoding)
+
+# omit descriptions that are too long to embed
+xsum_sample["n_tokens"] = xsum_sample.combined_info.apply(lambda x: len(encoding.encode(x)))
+xsum_sample = xsum_sample[xsum_sample.n_tokens &lt;= max_tokens]</pre>
+
+<p>The code contains several notably aspects listed below:</p>
+
+<ul>
+	<li>
+	<p>The code begins by combining textual information from 'document' and 'summary' columns into a new 'combined_info' column with all the textual information, so that we can embed only one column of the dataset.</p>
+	</li>
+	<li>
+	<p>The “embedding_encoding” is set to "cl100k_base", which is aligned with the encoding used by the “text-embedding-ada-002” model. This model is known for its efficiency in processing and embedding text data.</p>
+	</li>
+	<li>
+	<p>The “max_tokens” parameter is adjusted to 8000, considering the upper limit of the “text-embedding-ada-002 model”.</p>
+	</li>
+	<li>
+	<p>The script also includes a filtration mechanism to exclude text entries that exceed the maximum token limit, ensuring compatibility with the embedding model's constraints.</p>
+	</li>
+</ul>
+</section>
+
+<section data-type="sect3" id="step_3_vectorize_text_into_embedding_vector">
+<h3>Step 3 - Vectorize text into embedding vector</h3>
+
+<p>The third step involves transforming the textual data into embedding vectors, so that the distance and direction between vectors capture the semantic and syntactic relationships between words. The code is listed as follows:</p>
+<pre data-type="programlisting">
+from dotenv import load_dotenv, find_dotenv
+import tiktoken
+import openai
+from openai.embeddings_utils import get_embedding
+
+# set the OpenAI API key from environment variables
+_ = load_dotenv(find_dotenv())
+openai.api_key = os.getenv('OPENAI_API_KEY')
+
+# specify the embedding model and create embeddings
+embedding_model = "text-embedding-3-small"
+xsum_sample["embedding"] = xsum_sample.combined_info.apply(lambda x: get_embedding(x, engine=embedding_model))
+
+# rename columns and export embedding
+xsum_sample.rename(columns = {'embedding': 'vector'}, inplace = True)
+xsum_sample.rename(columns = {'combined_info': 'text'}, inplace = True)
+xsum_sample.to_pickle('data/xsum_sample.pkl')</pre>
+
+<p>Note that the following significant details in the code:</p>
+
+<ul>
+	<li>
+	<p>Environment variables, specifically the OpenAI API key, are loaded using the ‘dotenv’ package, which enhances the security and flexibility of the code. The API key is crucial for authenticating requests to the OpenAI API.</p>
+	</li>
+	<li>
+	<p>The final steps involve setting the specific embedding model ("text-embedding-3-small") and applying it to the “combined_info” column to generate embeddings.</p>
+	</li>
+	<li>
+	<p>The resulting embeddings are stored in a new column, and existing columns are renamed for clarity and saved to facilitate future embedding usage.</p>
+	</li>
+</ul>
+</section>
+
+<section data-type="sect3" id="step_4_setup_vector_db_and_store_embedding">
+<h3>Step 4 - Setup Vector DB and Store Embedding</h3>
+
+<p>The fourth step involves setting up Vector DB and storing embedding. LanceDB is a vector database designed to efficiently handle high-dimensional data, facilitating the storage, search, and management of embedding vectors. It excels in performing similarity searches at scale, enabling users to quickly find the most relevant items in large datasets based on vector similarity, making it a popular choice for applications in recommendation systems, image retrieval, and natural language processing tasks. The following code shows how to use LanceDB store embedding vectors:</p>
+<pre data-type="programlisting">
+import lancedb
+
+# connect to a database
+uri = "dataset/xsum-lancedb"
+db = lancedb.connect(uri)
+table = db.create_table("xsum_sample", xsum_sample)</pre>
+
+<p>In the code, notice the following important points:</p>
+
+<ul>
+	<li>
+	<p>First, we define a Uniform Resource Identifier (URI) that specifies the location of the database, in this case, "dataset/xsum-lancedb". This URI is used to locate and connect to the specific LanceDB database instance.</p>
+	</li>
+	<li>
+	<p>We create a new “table” from a pandas DataFrame which includes embedding information, and verifying the successful creation of the table.</p>
+	</li>
+</ul>
+
+<p>We’ll address more vector database information in Chapter 2.</p>
+</section>
+
+<section data-type="sect3" id="step_5_build_the_langchain_and_query_recommendat">
+<h3>Step 5 - Build the Langchain and Query recommendations</h3>
+
+<p>The final step is to build the langchain and query recommendations. The following code snippet integrates a LanceDB database with OpenAI's embeddings for advanced document search capabilities:</p>
+<pre data-type="programlisting">
+# openai_api_key = os.getenv('OPENAI_API_KEY')
+openai_api_key=os.getenv('OPENAI_API_KEY')
+embeddings = OpenAIEmbeddings(openai_api_key=openai_api_key)
+docsearch = LanceDB(connection = table, embedding = embeddings)</pre>
+
+<p>Please pay close attention to the following important points:</p>
+
+<ul>
+	<li>
+	<p>The OpenAI API key is necessary for authenticating requests to OpenAI's services. The OpenAIEmbeddings class is initialized with the retrieved API key. This class, likely a part of an OpenAI-related library, is used to interact with OpenAI's embedding services, enabling the generation of text embeddings.</p>
+	</li>
+	<li>
+	<p>A ‘LanceDB’ object is created, which takes the previously created database table and the embeddings as parameters. This integration includes setting up a system to perform advanced document search within the "xsum_sample" table, and leveraging the power of embeddings to enhance search capabilities by comparing the semantic similarity of query terms and document contents.</p>
+	</li>
+	<li>
+	<p>The retrieved document as the context passed to LLM, alongside some metadata which are the other variables within the dataset. The results display the output of a “similarity_search” function, which was called with this query and a parameter “k=1”, indicating that the search should return one document that is most similar to the query.</p>
+	</li>
+</ul>
+
+<p>The following question can be directed towards the recommendation system:</p>
+<pre data-type="programlisting">
+query = "I am looking for Harry Potter information. What could you suggest to me?"
+docs = docsearch.similarity_search(query, k=1)
+print(docs)</pre>
+
+<p>Output:</p>
+
+<blockquote>
+<p>[Document(page_content='Document: Gary Fung announced the settlement with Music Canada via a blog published at the weekend.\nIsohunt was shut down in 2013, when Mr Fung agreed to pay $110m to the Motion Picture Association of America (MPAA).\nOne researcher said the cases could set a "worrying" precedent for those who run sites that may link to pirated content.\nA court order associated with the decision details the fees as follows: 55m Canadian dollars in damages, C$10m in "punitive, exemplary and aggravated damages" and a further C$1m to cover legal costs.\nThe total amounts to 50m US dollars.\n…</p>
+</blockquote>
+
+<p>The results of our search have yielded a document centered around a legal dispute involving Gary Fung, an incident which the algorithm identified as the most pertinent recommendation for the query seeking "information on Harry Potter." The connection of this outcome to the initial query may appear tenuous, given that the document's focus is primarily on the proprietor of the piracy site Isohunt and his legal entanglements with Music Canada. This suggests a possible discrepancy in the algorithm's relevance detection or a scarcity of documents more closely aligned with the intended search topic. To address these challenges and enhance the accuracy of our recommendation systems, we will delve into more sophisticated methodologies in Chapter 5.</p>
+</section>
+</section>
+
+<section data-type="sect2" id="ai_assistants">
+<h2>AI Assistants</h2>
+
+<p>AI Assistants, empowered with advanced machine learning models, have transformed our interaction with technology through natural language processing. They shine in producing content that is not only grammatically correct but also contextually relevant, tailoring their output to the specifics of the task at hand. When it comes to text completion, these digital companions are adept at taking a fragment of text and seamlessly completing it, an asset in drafting emails, developing software, or even refining search engine queries. Their abilities extend to creative writing, where they employ a grasp of literary techniques to concoct stories, poetry, and more, often starting from a simple prompt. Leveraging their vast pre-trained knowledge from a wide array of sources, AI Assistants can extract factual information to answer questions. They do this by searching through their extensive database of information, which includes facts and figures up to their last training cut-off. In short, AI Assistants serve as multifaceted digital companions capable of engaging in creative and technical writing, conversational dialogue, and providing informative responses to queries. Their ability to parse language and generate context-aware content has significant applications across various fields, from education and customer service to entertainment and productivity tools.</p>
+
+<p>As we progress with using the 'xsum dataset' from Hugging Face, our next step is to build a more intelligent and responsive question-answering system. To accomplish this, we will be integrating the LangChain's RetrievalQA chain to handle complex queries, delivering precise and contextually relevant answers sourced from the extensive 'xsum dataset'. The integration aims to enhance the question-answering capabilities by combining the robust language understanding features of LangChain with the efficient data retrieval mechanisms of LanceDB.</p>
+
+<section data-type="sect3" id="steps_1_5_build_the_retrieval_engine">
+<h3>Steps 1-5 - Build the Retrieval Engine</h3>
+
+<p>The steps to build the retrieval engine are identical to those described in Steps 1-5 of the “Personalized Recommendation” section.</p>
+</section>
+
+<section data-type="sect3" id="step_6_build_the_retrieved_documents_for_the_cha">
+<h3>Step 6 - Build the Retrieved Documents for the Chain</h3>
+
+<p>The sixth step is to build the retrieved documents for the chain:</p>
+<pre data-type="programlisting">
+from langchain import OpenAI
+from langchain.chains import RetrievalQA
+from langchain.chat_models import ChatOpenAI
+
+# initiate the LLM - default is 'gpt-3.5-turbo'
+llm = ChatOpenAI(temperature=0, openai_api_key=openai_api_key, model_name="gpt-3.5-turbo")
+
+# setting Up the RetrievalQA
+qa = RetrievalQA.from_chain_type(llm=llm, chain_type="stuff", retriever=docsearch.as_retriever(), return_source_documents=True)</pre>
+
+<p>The code initializes a language model, configures a retrieval-based QA system, and then processes a query to get information. The specific mechanics and effectiveness of the system would depend on the underlying implementation of the langchain library and the components like ChatOpenAI, RetrievalQA, and docsearch. Please pay close attention to the following important points:</p>
+
+<ul>
+	<li>
+	<p>When initializing the LLM, we created an “ChatOpenAI” instance using the current default LLM model “gpt-3.5-turbo”, and “temperature=0” sets the randomness of the output to the lowest level, making the model's responses more deterministic.</p>
+	</li>
+	<li>
+	<p>A RetrievalQA object is initialized, integrating a previously created LLM model,</p>
+
+	<ul>
+		<li>
+		<p>"llm=llm '' passes the language model instance for use in the RetrievalQA system.</p>
+		</li>
+		<li>
+		<p>“chain_type="stuff" specifies a particular chain type within the RetrievalQA setup, although the exact nature of "stuff" requires further context from the library's documentation.</p>
+		</li>
+		<li>
+		<p>“retriever=docsearch.as_retriever()” sets up a document retriever function or module (named docsearch) that helps the RetrievalQA system in sourcing relevant documents or information.</p>
+		</li>
+		<li>
+		<p>“return_source_documents=True”: Instructs the system to include the original source documents that contributed to the generated answers in its output.</p>
+		</li>
+	</ul>
+	</li>
+</ul>
+
+<p>We can ask the following question to the agent:</p>
+<pre data-type="programlisting">
+query = "I'm looking for the information of Harry Potter. What could you suggest to me?"
+result = qa({"query": query})</pre>
+
+<p>Output:</p>
+
+<blockquote>
+<p>“I don't have information on Harry Potter in the provided context."</p>
+</blockquote>
+
+<p>In response to the query, "I'm looking for information on Harry Potter. What could you suggest to me?" The model conducted a search but unfortunately, reported no Harry Potter results, which is wrong given results in previous sections:</p>
+<div data-type="example">
+<pre data-type="programlisting">
+query = "I'm looking for the information of Spotify. What could you suggest to me?"
+result = qa({"query": query})</pre>
+</div>
+
+<p>Output:</p>
+
+<blockquote>
+<p>“Spotify is reportedly considering a direct listing on a stock market, which is an unconventional approach that stops short of a full-blown initial public offering (IPO). This method would allow Spotify to become a publicly listed company without raising new cash and avoid underwriting fees associated with an IPO. It could also help in maintaining the value of existing stakes in the company. This approach is rare and is usually used by smaller companies that do not expect high levels of trading in their stock. If you're interested in investing in Spotify, you may want to keep an eye on updates regarding their potential direct listing.”</p>
+</blockquote>
+
+<p>As shown in the results, there is a response to the query about ‘Spotify’. The results show relevant Spotify's news, that is, consideration of a direct listing on a stock exchange, which would allow the company to become publicly traded without raising new cash.. Because we used the “return_source_documents=True” parameter, we can also retrieve the source documents from our result variable. The source document also included a metadata section with details such as document, summary, vector and distance.This information can provide LLM with access to previous steps in the conversation.</p>
+</section>
+
+<section data-type="sect3" id="step_7_prompt_engineering">
+<h3>Step 7 - Prompt Engineering</h3>
+
+<p>The final step involves prompt engineering:</p>
+<pre data-type="programlisting">
+from langchain.prompts import PromptTemplate
+
+template = """You are a news recommender system that help users to find useful information. 
+Use the following pieces of context to answer the question at the end. 
+For each question, suggest three news, with a short description of the news and the reason why the user might like it.
+If you don't know the answer, just say that you don't know, don't try to make up an answer.
+
+{context}
+
+Question: {question}
+Your response:"""
+
+
+PROMPT = PromptTemplate(
+    template=template, input_variables=["context", "question"])
+
+chain_type_kwargs = {"prompt": PROMPT}
+
+llm = ChatOpenAI(temperature=0, openai_api_key=openai_api_key, model_name="gpt-3.5-turbo")
+
+qa = RetrievalQA.from_chain_type(llm=llm, 
+    chain_type="stuff", 
+    retriever=docsearch.as_retriever(),
+    return_source_documents=True, 
+    chain_type_kwargs=chain_type_kwargs)</pre>
+
+<p>We can also create a question and answer that can recommend news articles by passing a custom prompt that is easily defined by using LangChain prompt templates:</p>
+
+<ul>
+	<li>
+	<p>First a multi-line string “template” is defined to outline a scenario where the model is instructed to act as a news recommender system. It provides a structure on how to respond to a given question by suggesting three news articles with descriptions and reasons why the user might find them interesting.</p>
+	</li>
+	<li>
+	<p>PROMPT statement creates an instance of PromptTemplate with the previously defined template. It specifies that the template expects two input variables, context and question, that will be dynamically replaced when generating prompts for the language model.</p>
+	</li>
+	<li>
+	<p>“chain_type_kwargs = {"prompt": PROMPT}” defines a dictionary containing keyword arguments specific to the chain type being used. In this case, the argument is the prompt template that will be used by the “RetrievalQA” system.</p>
+	</li>
+	<li>
+	<p>The “ChatOpenAI” instance was initialized, which is a type of chain that uses the initialized language model(“llm”) and a retriever (from “docsearch.as_retriever()” ) to find relevant documents or information that will be used to answer questions.</p>
+	</li>
+</ul>
+
+<p>Output:</p>
+
+<blockquote>
+<p>“Spotify is reportedly considering a direct listing on a stock market, which is an unconventional approach that stops short of a full-blown initial public offering (IPO). This method would allow Spotify to become a publicly listed company without raising new cash and avoid underwriting fees associated with an IPO. It could also help in maintaining the value of existing stakes in the company. This approach is rare and is usually used by smaller companies that do not expect high levels of trading in their stock. If you're interested in investing in Spotify, you may want to keep an eye on updates regarding their potential direct listing.”</p>
+
+<p>1. News: Spotify considering direct listing on stock market</p>
+
+<p>Description: This news article discusses Spotify's potential plan to go public through a direct listing on a stock market, rather than a traditional initial public offering (IPO). It explains the benefits of a direct listing, such as avoiding underwriting fees and maintaining the value of existing stakes in the company. This news would be relevant to someone interested in the financial aspects of Spotify's future and its potential impact on the music industry.</p>
+
+<p>2. News: Spotify signs new long-term licensing deal with Universal Music Group</p>
+
+<p>Description: This news article highlights Spotify's recent agreement with Universal Music Group, the world's largest record label. It discusses the significance of this deal for Spotify's music streaming service and its relationship with major music labels. This news would be of interest to someone following Spotify's business partnerships and its efforts to secure licensing agreements with major music industry players.</p>
+
+<p>3. News: Spotify's potential impact on the IPO market</p>
+
+<p>Description: This news article explores the potential implications of Spotify's unconventional direct listing approach on the IPO market. It discusses the advantages and disadvantages of direct listings compared to traditional IPOs and analyzes how Spotify's decision could influence other companies considering going public. This news would be relevant to someone interested in the financial and market dynamics of IPOs and the potential disruption caused by Spotify's approach.</p>
+</blockquote>
+
+<p>The output of the news question and answer system, which has provided a list of three news items in response to a query about Spotify. These recommended news are tailored to the interests of the user based on the context of wanting information about Spotify. In Chapter 6, we’ll further address how to build the system that could further personalize the news selection by asking the user for more details, which would be incorporated into the prompt or context to refine the answers.</p>
+</section>
+</section>
+</section>
+
+<section data-type="sect1" id="summary_idt9iu07">
+<h1>Summary</h1>
+
+<p>In this chapter, we first presented the evolution of NLP and LLMs through four pivotal stages. It started with the use of simple n-gram models in Stage 1, which laid the groundwork for understanding language patterns. Progressing to ontologies and HMM marks the Stage 2, introducing more sophisticated means of interpreting language structure and context. The journey continues with the adoption of RNNs, LSTM, and transformer-based architectures in the Stage 3, significantly advancing our ability to process sequential data and context. Finally, we reach the cutting-edge advancements with LLM such as ChatGPT in the Stage 4, which epitomize the culmination of previous developments into models capable of generating human-like text and understanding complex language nuances.</p>
+
+<p>We explored LLMs Foundations and attributes. The evolution of NLP from basic tokenization methods to advanced, context-aware LLM represents a significant technological journey. Initially, NLP relied on simple techniques like character, word, and sub-word tokenization to analyze text, progressing to sophisticated methods such as word embeddings that capture semantic relationships in high-dimensional vector spaces. Techniques like Bag-of-Words and n-gram models added basic context sensitivity, while HMM introduced complex sequence modeling. The transformers, enabling models to understand words in relation to each other within sentences, lead to the development of LLMs capable of grasping the nuances of language. This progression culminated in the use of pre-training and prompt-based learning, where models are pre-trained on vast datasets and then fine-tuned or guided by prompts for specific tasks, showcasing a deepened understanding of leveraging data and patterns.</p>
+
+<p>LLMs have evolved into large-scale, general-purpose models exhibiting emergent abilities, enabling them to produce coherent and contextually relevant text across various domains without explicit programming of language rules or domain knowledge. These emergent capabilities are pronounced within the prompting paradigm. The emergence of LLMs is explored through three key areas: ICL, Instruction Following, and CoT reasoning, showcasing the remarkable capacity for understanding and generating text based on learned patterns and data.</p>
+
+<p>Moreover, the development of LLMs has significantly evolved from basic prompt engineering to sophisticated pre-training and fine-tuning methodologies. The typical two-stage process involves initially pre-training the model followed by fine-tuning it with specific task objectives for enhanced task performance.</p>
+
+<p>Finally, we outlined four case studies using LLM, covering Semantic Search (utilizing embedding vectors for document retrieval), Summarization/Classification (leveraging search and sampling for inference), Personalization (employing a vector database for embedding storage, and constructing a retrieval engine for query recommendations), and AI Assistant (developing a retrieval engine and applying prompt engineering).</p>
+
+<p>In the next chapter, Retrieval-Augmented Generation (RAG) systems will be introduced, including key components like chunking, indexing using embedding and knowledge graph, retrieval, generation and architecture, and a review of related tools and the upcoming challenges in the field.</p>
+</section>
+</section>

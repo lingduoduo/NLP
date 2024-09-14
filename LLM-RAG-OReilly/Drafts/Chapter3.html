@@ -1,0 +1,992 @@
+<section data-type="chapter" id="evaluation_of_llm_and_rag_systems" xmlns="http://www.w3.org/1999/xhtml">
+      <h1>Evaluation of LLM and RAG Systems</h1>
+      <aside data-type="sidebar"><h1>A Note for Early Release Readers</h1>
+<p>With Early Release ebooks, you get books in their earliest form—the author's raw and unedited content as they write—so you can take advantage of these technologies long before the official release of these titles.</p>
+
+<p>This will be the 3rd chapter of the final book. Please note that the GitHub repo will be made active later on.</p>
+
+<p>If you have comments about how we might improve the content and/or examples in this book, or if you notice missing material within this chapter, please reach out to the editor at <em>rfernando@oreilly.com</em>.</p>
+</aside>
+      <p>In the previous chapter, we explored RAG systems that combine information retrieval with language generation to provide responses. But how do we assess the effectiveness of these systems? This chapter focuses on the evaluation of LLMs and RAG systems, including an investigation of key evaluation dimensions, metrics, and methodologies to assess their strengths, weaknesses, and areas for improvement across various tasks and applications. We will discuss automated and human evaluation techniques and provide a comprehensive understanding of their performance. We will also present a case study to illustrate the practical application of these evaluation frameworks, showcasing how they guide the optimization of LLMs and RAG systems for real-world scenarios.</p>
+      <p>By the end of this chapter, you will have a thorough understanding of the evaluation landscape, enabling them to assess and enhance the capabilities of these advanced language models and generation systems.</p>
+      <section data-type="sect1" id="retrieval_systems_evaluations">
+        <h1>Retrieval Systems Evaluations</h1>
+        <p>The significance of RAG systems lies in their capacity to augment AI responses with real-time, externally sourced data, thereby enriching interactions with greater relevance and informed insights.</p>
+        <section data-type="sect2" id="importance_of_retrieval_quality_in_rag_systems">
+          <h2>Importance of Retrieval Quality in RAG Systems</h2>
+          <p>In RAG systems, the quality of retrieval plays a crucial role in the overall response quality. If the retrieval system fails to provide relevant and accurate data, the language model's ability to generate high-quality responses will be severely hindered. Research findings have shown that the quality and positioning of the retrieved information can significantly impact the performance of language models in RAG systems. </p>
+          <p>Precise and concise retrieval can improve generation quality, as it provides the language model with more focused and relevant context. Additionally, studies suggest that language models tend to pay more attention to the top-ranked and bottom-ranked retrieved results, while results in the middle often receive less attention.</p>
+          <p>Different application scenarios may have varying requirements for retrieval quality. For instance, in coding applications, diversity in the retrieved results is often favored due to the high degree of duplication in the coding corpus. In contrast, in domains such as medical or legal applications, precision and accuracy are of utmost importance, as even minor errors could have severe consequences. Therefore, evaluating the performance of the retrieval component is essential for building effective RAG systems.</p>
+        </section>
+        <section data-type="sect2" id="key_metrics_for_evaluating_retrieval_systems">
+          <h2>Key Metrics for Evaluating Retrieval Systems</h2>
+          <p>To assess the performance of retrieval systems, we use various metrics, each offering unique insights into the system's performance.</p>
+          <section data-type="sect3" id="hit_rate_idsI2Ux9">
+            <h3>Hit Rate</h3>
+            <p>The hit rate measures the proportion of queries for which the correct chunk or context appears within the top-k retrieved results. It evaluates how frequently the system correctly identifies the relevant chunk or context within its top-k results. </p>
+            <p>A high Hit Rate indicates that the system consistently retrieves relevant information within the designated top results.</p>
+            <p>The hit rate can be calculated as follows:</p>
+            <figure id="fig_1_placeholder">
+              <img src="images/evaluation_of_llm_and_rag_systems_547122_01.png" alt="Placeholder "/>
+            </figure>
+            <p>For example, if we set k=5 (top 5 results), and for 80% of user queries, the correct information is present within the top 5 retrieved chunks, the Hit Rate would be 80%.</p>
+          </section>
+          <section data-type="sect3" id="mean_reciprocal_rank">
+            <h3>Mean Reciprocal Rank</h3>
+            <p>The mean reciprocal rank (MRR) assesses a system's accuracy by considering the position of the highest-ranking relevant chunk or context for each query. MRR calculates the average of the inverse of these positions across all queries. MRR values range from 0 to 1, with higher values indicating better retrieval performance.</p>
+            <p>The MRR is significant because it rewards systems that consistently rank the most relevant information at the top.</p>
+            <p>The MRR can be calculated as follows:</p>
+            <figure id="fig_2_placeholder">
+              <img alt="Placeholder" src="images/evaluation_of_llm_and_rag_systems_547122_02.png"/>
+            </figure>
+            <p>For example, consider four queries:</p>
+            <p>Query 1: Relevant passage at position 1 (Reciprocal rank = 1)</p>
+            <p>Query 2: Relevant passage at position 3 (Reciprocal rank = 1/3)</p>
+            <p>Query 3: Relevant passage at position 2 (Reciprocal rank = 1/2)</p>
+            <p>Query 4: No relevant passage found (Reciprocal rank = 0)</p>
+            <p>The MRR would be calculated as follows:</p>
+            <p>MRR = (1 + 1/3 + 1/2 + 0) / 4 = (1 + 0.33 + 0.5 + 0) / 4 = 0.46</p>
+          </section>
+          <section data-type="sect3" id="precision_k">
+            <h3>Precision@K</h3>
+            <p>Precision measures the fraction of the top K retrieved results that are actually relevant to the query.</p>
+            <p>Precision provides an indication of how well the retrieval system can identify the most relevant information within the top results.</p>
+            <p>The Precision can be calculated as follows:</p>
+            <figure id="fig_3_placeholder">
+              <img alt="Placeholder" src="images/evaluation_of_llm_and_rag_systems_547122_03.png"/>
+            </figure>
+            <p>For example, if out of the top 10 retrieved results, 7 are relevant to the query, Precision@10 is 0.7 or 70%.</p>
+          </section>
+          <section data-type="sect3" id="normalized_discounted_cumulative_gain">
+            <h3>Normalized Discounted Cumulative Gain</h3>
+            <p>Normalized Discounted Cumulative Gain (NDCG) is a measure of ranking quality that accounts for the position of relevant results in the ranked list. It assigns higher scores to relevant results appearing higher in the ranking, with the gain from each result diminishing logarithmically with its position.</p>
+            <p>NDCG emphasizes the importance of retrieving relevant information in higher positions within the ranking.</p>
+            <p>The NDCG can be calculated as follows:</p>
+            <figure id="fig_4_placeholder">
+              <img src="images/evaluation_of_llm_and_rag_systems_547122_04.png" alt="Placeholder"/>
+            </figure>
+            <p>For example, if a relevant result appears at the top of the list, it will contribute more to the NDCG score than if it appears lower down.</p>
+            <p>Evaluating the performance of retrieval systems is a critical step in developing effective RAG systems. Metrics like Hit Rate, Mean Reciprocal Rank, Precision@K, and NDCG provide valuable insights into the system's ability to retrieve accurate and relevant information, which directly impacts the quality of the generated responses. By carefully assessing and optimizing the retrieval component, you can create more reliable and trustworthy RAG systems tailored to specific application domains.</p>
+          </section>
+        </section>
+      </section>
+      <section data-type="sect1" id="llms_and_rag_systems_evaluation_process">
+        <h1>LLMs and RAG Systems Evaluation Process</h1>
+        <p>As shown in Figure 3-1, the evaluation process of LLM and RAG systems typically involves three key aspects: </p>
+        <dl>
+          <dt>Evaluation Dimensions and Metrics </dt>
+          <dd>
+            <p>This addresses the question, "What should we evaluate?" by identifying the tasks and attributes that are essential for assessing the models' capabilities. These dimensions encompass various natural language processing tasks, reasoning abilities, knowledge retrieval abilities, robustness, ethical considerations, and domain-specific applications.</p>
+          </dd>
+          <dt>Measurement Data Construction </dt>
+          <dd>
+            <p>This answers the question, "Where should we evaluate?" by leveraging diverse and representative datasets and benchmarks that encapsulate the challenges and applications of NLP in real-world scenarios. These datasets facilitate the effective testing and comparison of LLMs and RAG systems' performances across different domains and tasks.</p>
+          </dd>
+          <dt>Evaluation Methods </dt>
+          <dd>
+            <p>This<em> </em><em>a</em>ddresses the question, "How should we evaluate?" by employing a range of evaluation techniques. These include human evaluations, such as expert reviews and user studies, as well as automated model-based evaluations, like precision, recall, and F1 scores for text classification tasks. The choice of evaluation methods depends on the specific task, the intended use case, and the availability of ground truth data.</p>
+          </dd>
+        </dl>
+        <p>By building evaluation systems that cover these three aspects, you can comprehensively assess the strengths and weaknesses of LLMs and RAG systems, and drive continued progress of improving their LLM and RAG systems.</p>
+        <figure id="fig_5_the_evaluation_process_of_ai_models">
+          <img alt="The evaluation process of AI models" src="images/evaluation_of_llm_and_rag_systems_547122_05.png"/>
+          <figcaption>The evaluation process of AI models</figcaption>
+        </figure>
+        <section data-type="sect2" id="evaluation_dimensions_and_metrics">
+          <h2>Evaluation Dimensions and Metrics</h2>
+          <p>Evaluating the performance of LLMs and RAG systems is a multifaceted endeavor that requires assessing their capabilities across a diverse array of dimensions and tasks. This section delves into the key dimensions we should consider when assessing LLMs and RAG systems.</p>
+          <section data-type="sect3" id="llm_model_evaluation">
+            <h3>LLM Model Evaluation</h3>
+            <p>To comprehensively assess the strengths and weaknesses of LLMs, we usually consider the following key dimensions: </p>
+            <dl>
+              <dt>General Language Abilities: </dt>
+                <dd><p>Natural Language Understanding (NLU): Assess how well LLMs perform tasks like sentiment analysis (e.g., gauging customer satisfaction in reviews), text classification (e.g., categorizing news articles by topic), natural language inference (e.g., determining if a conclusion logically follows from a premise), and semantic understanding (e.g., identifying the role of words within a sentence).</p>
+              </dd>
+              <dd>
+                <p>Natural Language Generation (NLG):Assess the models' ability to perform tasks such as summarization (creating concise summaries of lengthy documents), dialogue generation (conducting coherent and contextually relevant conversations), machine translation (translating text between languages), and question answering (providing accurate answers to questions based on context).</p>
+              </dd>
+              <dd>
+                <p>Multilinguality: Test how well LLMs handle tasks across multiple languages, particularly those with limited resources. This evaluation helps assess cross-lingual transfer (applying knowledge from one language to another) and zero-shot learning (performing tasks without prior training on specific examples) capabilities.</p>
+              </dd>
+              <dt>Reasoning Abilities</dt>
+              <dd>
+                <p>Evaluate the LLMs' capability in areas like mathematical reasoning (solving algebraic equations), commonsense reasoning (drawing inferences based on general knowledge), logical reasoning (deducting conclusions from given information), and domain-specific reasoning (e.g., legal or medical reasoning).</p>
+              </dd>
+              <dt>Knowledge Retrieval Abilities</dt>
+              <dd>
+                <p>Evaluate the models' ability to consistently generate and maintain factually accurate information across various tasks. This is critical for applications like automated fact-checking and information extraction.</p>
+              </dd>
+              <dt>Robustness, Ethics, Biases, and Trustworthiness</dt>
+              <dd>
+                <p>Assess the models' robustness against misleading or adversarial inputs, their adherence to ethical guidelines, their susceptibility to biases, and their overall trustworthiness when used in decision-making processes.</p>
+              </dd>
+            </dl>
+          </section>
+          <section data-type="sect3" id="rag_system_evaluation">
+            <h3>RAG System Evaluation</h3>
+            <p>RAG systems, which combine the generation capabilities of LLMs with external knowledge retrieval, require a comprehensive evaluation approach that captures their end-to-end performance and domain-specific applicability.</p>
+            <section data-type="sect4" id="end_to_end_evaluation">
+              <h4>End-to-end Evaluation</h4>
+              <p>While core retrieval evaluation metrics like accuracy or F1 score are valuable for LLMs, RAG systems require a more nuanced approach. Here, we explore additional dimensions to comprehensively assess their performance:</p>
+              <dl>
+                <dt>Retrieval Relevance</dt>
+                <dd>
+                  <p>Measure how well the retrieved information from external knowledge sources aligns with the user's query and the overall context. </p>
+                </dd>
+                <dt>Groundedness/Fusion Quality/Coherence</dt>
+                <dd>
+                  <p>Evaluate how effectively the RAG system integrates the retrieved information with the LLM's internal knowledge for generation. This can be assessed by analyzing the coherence between retrieved content and the generated response, or by measuring the factual consistency of the final output.</p>
+                </dd>
+                <dt>Adaptability</dt>
+                <dd>
+                  <p>Evaluate how well the RAG system adapts to different types of prompts, domains, and knowledge sources. Ideally, the system should be able to leverage various external knowledge bases seamlessly and adjust its retrieval and generation strategies accordingly.</p>
+                </dd>
+                <dt>Safety/Toxicity</dt>
+                <dd>
+                  <p>Given the propensity of models to generate inappropriate content, this dimension evaluates the systems' ability to avoid generating toxic text, including hate speech, violent speech, and abusive language. Addressing toxicity requires nuanced understanding and clear definitions, often necessitating contextual and subjective judgment.</p>
+                </dd>
+                <dt>Efficiency</dt>
+                <dd>
+                  <p>Consider the computational resources required for the retrieval process and the overall RAG system operation. This is important for real-world deployments where resource constraints might exist. Techniques like pre-filtering retrieved information or optimizing retrieval algorithms can be explored to improve efficiency.</p>
+                </dd>
+              </dl>
+              <p>Specifically for retrieval relevance, coherence, and adaptability, Figure 3-3 provides examples of four key abilities required for an effective RAG system, especially in question-answering contexts:</p>
+              <dl>
+                <dt>Noise Robustness</dt>
+                <dd>
+                  <p>This ability refers to the model's resilience to noisy or irrelevant information present in external documents or knowledge sources. The example shows a case where the provided documents contain both relevant and irrelevant information for answering the question "Who was awarded the 2022 Nobel prize in literature?". Despite the noise, the model correctly generates the answer "Annie Ernaux".</p>
+                </dd>
+                <dt>Negative Rejection</dt>
+                <dd>
+                  <p>This capability involves recognizing when the external documents do not contain sufficient information to answer the question accurately. In the given example, the documents are completely irrelevant to the question, and the model appropriately responds with "I cannot answer the question because of the insufficient information in documents".</p>
+                </dd>
+                <dt>Information Integration</dt>
+                <dd>
+                  <p>This ability relates to synthesizing and integrating information from multiple external documents or sources to generate a coherent answer. The example illustrates combining two pieces of information about the ChatGPT app launch dates (May 18, 2023, and March 1) to provide the comprehensive answer "May 18 and March 1".</p>
+                </dd>
+                <dt>Counterfactual Robustness</dt>
+                <dd>
+                  <p>This dimension tests the model's capability to recognize and reject counterfactual or factually incorrect information present in the external documents. In the given example, the documents contain erroneous information about New York hosting the 2004 Olympics, and the model correctly identifies this error, stating that "There are factual errors in the provided documents. The answer should be Athens."</p>
+                </dd>
+              </dl>
+              <figure id="fig_6_required_abilities_for_rag">
+                <img src="images/evaluation_of_llm_and_rag_systems_547122_06.png" alt="Required Abilities for RAG"/>
+                <figcaption>Required Abilities for RAG</figcaption>
+              </figure>
+              <p>Table 3-1 lists evaluation metrics for each dimension.</p>
+              <table>
+                <caption>Evaluation Metrics</caption>
+                <thead>
+                <tr>
+                  <th>Evaluation Dimension</th>
+                  <th>Example Metrics</th>
+                </tr></thead>
+                <tbody>
+                <tr>
+                  <td>Retrieval Relevance</td>
+                  <td>
+                    <dl>
+                      <dt>ROUGE scores (Recall-Oriented Understudy for Gisting Evaluation) </dt>
+                      <dd>A set of metrics that compare a system's generated summary of a text passage to a set of reference summaries created by humans. High ROUGE scores indicate that the retrieved information is relevant to the user's query and captures the key points of the source material.</dd>
+                    </dl>
+                  </td>
+                </tr>
+                <tr>
+                  <td>Groundedness/Fusion Quality/Coherence</td>
+                  <td>
+                    <dl>
+                      <dt>Entity Linking Accuracy</dt>
+                      <dd>This metric evaluates the ability of the RAG system to correctly identify and link entities mentioned in the generated text to their corresponding entries in a knowledge base or external resource.</dd>
+                      <dt>Semantic Similarity Scores</dt>
+                      <dd>Metrics like BERTScore and BLEURT measure the semantic similarity between the generated text and reference texts (e.g., ground truth or retrieved information). Higher scores indicate better semantic alignment and coherence.</dd>
+                      <dt>FactScore</dt>
+                      <dd>An evaluation metric designed to assess the factual precision of text generated by LLMs. It addresses the challenge of evaluating long-form text, which often contains a mix of accurate and inaccurate information, making simple binary judgments of quality insufficient. FactScore breaks down a text generation into a series of atomic facts and calculates the percentage of these facts that are supported by a reliable knowledge source. </dd>
+                    </dl>
+                  </td>
+                </tr>
+                <tr>
+                  <td>Adaptability</td>
+                  <td>
+                    <dl>
+                      <dt>Zero-shot Performance</dt>
+                      <dd>This metric evaluates the RAG system's ability to perform tasks or handle prompts from new domains without any prior training or fine-tuning on those specific domains.</dd>
+                      <dt>Few-shot Learning Curve</dt>
+                      <dd>This measures how quickly the RAG system can adapt and improve its performance when provided with a small number of examples or training instances from a new domain.</dd>
+                      <dt>Prompt Variation Performance</dt>
+                      <dd>This evaluates how well the RAG system can handle variations in the way prompts or queries are phrased, assessing its ability to understand and respond to diverse linguistic formulations.</dd>
+                    </dl>
+                  </td>
+                </tr>
+                <tr>
+                  <td>Safety/Toxicity</td>
+                  <td>
+                    <dl>
+                      <dt>Fairness Scoring</dt>
+                      <dd>Metrics that quantify potential biases present in the retrieved information or generated response. This can involve measuring disparities in the representation of different groups or identifying discriminatory language patterns.</dd>
+                      <dt>Toxicity Detection Models</dt>
+                      <dd>Machine learning models trained to identify harmful or offensive language in text. These models can be used to flag potentially toxic content generated by the RAG system.</dd>
+                    </dl>
+                  </td>
+                </tr>
+                <tr>
+                  <td>Efficiency</td>
+                  <td>
+                    <dl>
+                      <dt>Query Throughput</dt>
+                      <dd>This metric measures the number of queries or requests that the RAG system can process per unit of time, providing an indication of its scalability and ability to handle high volumes of traffic.</dd>
+                      <dt>Latency</dt>
+                      <dd>Latency refers to the end-to-end response time, from when a query is submitted to when the final response is generated. Low latency is essential for real-time applications and user experience.</dd>
+                      <dt>Computational Resource Utilization</dt>
+                      <dd>These metrics track the usage of critical resources like CPU, GPU, memory, and network bandwidth, helping to identify bottlenecks and optimize resource allocation for efficient operation.</dd>
+                    </dl>
+                  </td>
+                </tr>
+                </tbody>
+              </table>
+            </section>
+            <section data-type="sect4" id="domain_specific_evaluations">
+              <h4>Domain-Specific Evaluations</h4>
+              <p>The evaluation of RAG systems can be further tailored to specific application domains to ensure their effectiveness and reliability in real-world scenarios. By considering domain-specific requirements, we can optimize RAG systems for their intended use cases and identify areas for improvement. In this section, we will look at how RAG systems can be tailored for three example domains.</p>
+              <section data-type="sect5" id="medical_domain">
+                <h5>Medical Domain</h5>
+                <p>In the medical domain, factual accuracy and adherence to established medical guidelines are of utmost importance. Evaluations should assess:</p>
+                <dl>
+                  <dt>Diagnostic Accuracy</dt>
+                  <dd>
+                    <p>The ability to accurately diagnose medical conditions based on patient symptoms, medical history, and relevant medical knowledge.</p>
+                  </dd>
+                  <dt>Treatment Recommendations</dt>
+                  <dd>
+                    <p>The generation of appropriate treatment plans that align with evidence-based medical protocols and consider potential contraindications or drug interactions.</p>
+                  </dd>
+                  <dt>Patient Education</dt>
+                  <dd>
+                    <p>The quality and comprehensibility of patient education materials generated, ensuring they are accurate, easy to understand, and tailored to individual patient needs.</p>
+                  </dd>
+                  <dt>Medical Research Insights</dt>
+                  <dd>
+                    <p>The ability to synthesize and generate insights from medical research literature, clinical trials, and other relevant data sources.</p>
+                  </dd>
+                </dl>
+              </section>
+              <section data-type="sect5" id="mathematical_domain">
+                <h5>Mathematical Domain </h5>
+                <p>In the mathematical domain, reasoning abilities and the accurate application of mathematical principles are crucial. Evaluations should focus on:</p>
+                <dl>
+                  <dt>Problem-Solving</dt>
+                  <dd>
+                    <p>The ability to solve complex mathematical problems, including algebraic equations, calculus problems, and proofs, by breaking them down into logical steps and applying appropriate mathematical techniques.</p>
+                  </dd>
+                  <dt>Explanation Generation</dt>
+                  <dd>
+                    <p>The quality of explanations provided for mathematical concepts, theorems, and problem-solving approaches, ensuring clarity, accuracy, and logical coherence.</p>
+                  </dd>
+                  <dt>Mathematical Reasoning</dt>
+                  <dd>
+                    <p>The capability to perform logical reasoning, draw inferences, and make deductions based on given mathematical premises and axioms.</p>
+                  </dd>
+                  <dt>Domain-Specific Applications</dt>
+                  <dd>
+                    <p>The performance in domain-specific applications, such as physics simulations, engineering calculations, or financial modeling, where mathematical reasoning is a critical component.</p>
+                  </dd>
+                </dl>
+              </section>
+              <section data-type="sect5" id="search_and_recommendation">
+                <h5>Search and Recommendation</h5>
+                <p>In the context of search and recommendation systems, evaluations should assess the relevance, diversity, and accuracy of the retrieved information or recommended items. Key aspects to evaluate include:</p>
+                <dl>
+                  <dt>Relevance</dt>
+                  <dd>
+                    <p>The degree to which the retrieved information or recommended items are relevant to the user's query or preferences.</p>
+                  </dd>
+                  <dt>Diversity</dt>
+                  <dd>
+                    <p>The ability to provide a diverse set of results or recommendations, avoiding redundancy and capturing different aspects of the query or user interests.</p>
+                  </dd>
+                  <dt>Accuracy</dt>
+                  <dd>
+                    <p>The factual accuracy and trustworthiness of the retrieved information or recommended items, ensuring they are up-to-date, reliable, and free from misinformation.</p>
+                  </dd>
+                  <dt>Personalization</dt>
+                  <dd>
+                    <p>The effectiveness of personalization techniques in tailoring search results or recommendations to individual user profiles, preferences, and behavior patterns.</p>
+                  </dd>
+                  <dt>Explainability</dt>
+                  <dd>
+                    <p>The ability to provide clear and understandable explanations for the retrieved information or recommended items, enhancing transparency and user trust.</p>
+                  </dd>
+                </dl>
+                <p>By evaluating RAG systems across diverse domains and specific tasks, we gain insights into their strengths and weaknesses, allowing us to identify areas for improvement and ensure they are reliable tools for various applications. This comprehensive approach to evaluation is crucial for the responsible development and deployment of these powerful language models.</p>
+              </section>
+            </section>
+          </section>
+        </section>
+        <section data-type="sect2" id="measurement_data_construction">
+          <h2>Measurement Data Construction </h2>
+          <p>Measurement data construction for evaluating LLM and RAG systems involves creating datasets or benchmarks that cover diverse tasks and scenarios to assess the performance of these systems comprehensively.</p>
+          <section data-type="sect3" id="datasets_benchmark">
+            <h3>Datasets/Benchmark</h3>
+            <p>Evaluating LLMs and RAG systems requires a diverse set of benchmarks and datasets to comprehensively assess their capabilities. These benchmarks can be broadly categorized into two groups: general task benchmarks and specific downstream task benchmarks.</p>
+            <section data-type="sect4" id="benchmarks_for_general_tasks">
+              <h4>Benchmarks for General Tasks</h4>
+              <p>General task benchmarks evaluate a model's capabilities across a broad range of tasks, providing a general understanding of its performance. These benchmarks typically map to LLM-based evaluation dimensions such as language ability, reasoning ability, knowledge retrieval, and safety.</p>
+              <section data-type="sect5" id="mt_bench_id6cNyOa">
+                <h5>MT-Bench</h5>
+                <p>MT-Bench focuses on evaluating LLMs in multi-turn dialogues with comprehensive questions designed for conversation handling, simulating real-world dialogue scenarios. It assesses language understanding, reasoning abilities, and knowledge retrieval in a conversational setting.</p>
+                <p>MT-Bench has the following tasks and evaluation dimensions:</p>
+                <dl>
+                  <dt>Multi-turn question answering</dt>
+                  <dd>
+                    <p>Evaluates language understanding, reasoning, and knowledge retrieval.</p>
+                  </dd>
+                  <dt>Task-oriented dialogue</dt>
+                  <dd>
+                    <p>Assesses the model's ability to understand and complete specific tasks through dialogue.</p>
+                  </dd>
+                  <dt>Open-domain dialogue</dt>
+                  <dd>
+                    <p>Evaluates language generation, coherence, and conversational skills.</p>
+                  </dd>
+                </dl>
+              </section>
+              <section data-type="sect5" id="mmlu_multi_task_language_understanding">
+                <h5>MMLU (Multi-Task Language Understanding)</h5>
+                <p>MMLU is a multi-task benchmark that assesses text models across various contexts, evaluating the adaptability and versatility of LLMs in handling multiple tasks simultaneously. It covers a wide range of language understanding tasks, including natural language inference, coreference resolution, and question answering.</p>
+                <p>MMLU has the following tasks and evaluation dimensions:</p>
+                <dl>
+                  <dt>Natural language inference</dt>
+                  <dd>
+                    <p>Evaluates the model's ability to understand and reason about sentence relationships.</p>
+                  </dd>
+                  <dt>Coreference resolution</dt>
+                  <dd>
+                    <p>Assesses the model's capability to identify and resolve referring expressions.</p>
+                  </dd>
+                  <dt>Question answering</dt>
+                  <dd>
+                    <p>Tests the model's language understanding and knowledge retrieval abilities.</p>
+                  </dd>
+                </dl>
+              </section>
+              <section data-type="sect5" id="alpacaeval">
+                <h5>AlpacaEval</h5>
+                <p>AlpacaEval is an automated evaluation benchmark that assesses the performance of LLMs across a variety of natural language processing tasks, providing metrics for robustness and diversity evaluations. It covers a broad range of tasks, including language generation, understanding, and reasoning.</p>
+                <p>AlpacaEval has the following tasks and evaluation dimensions:</p>
+                <dl>
+                  <dt>Language generation</dt>
+                  <dd>
+                    <p>Evaluates the model's ability to generate coherent and fluent text.</p>
+                  </dd>
+                  <dt>Language understanding</dt>
+                  <dd>
+                    <p>Assesses the model's comprehension of natural language input.</p>
+                  </dd>
+                  <dt>Reasoning</dt>
+                  <dd>
+                    <p>Tests the model's logical reasoning and problem-solving capabilities.</p>
+                  </dd>
+                  <dt>Robustness</dt>
+                  <dd>
+                    <p>Measures the model's performance under various perturbations and adversarial conditions.</p>
+                  </dd>
+                  <dt>Diversity</dt>
+                  <dd>
+                    <p>Evaluates the model's ability to generate diverse and varied outputs.</p>
+                  </dd>
+                </dl>
+              </section>
+            </section>
+            <section data-type="sect4" id="benchmarks_for_specific_downstream_tasks">
+              <h4>Benchmarks for Specific Downstream Tasks</h4>
+              <p>Specific downstream task benchmarks focus on particular domains or applications, offering a more in-depth analysis of a model's suitability for that specific use case. These benchmarks typically map to RAG-based evaluation dimensions such as domain-specific knowledge, precision, and application-specific reasoning.</p>
+              <section data-type="sect5" id="multimedqa_medical_question_answering">
+                <h5>MultiMedQA (Medical Question-Answering)</h5>
+                <p>MultiMedQA is a dataset consisting of medical examination questions, research inquiries, and consumer healthcare queries sampled from reputable medical sources. The dataset covers a wide range of medical topics and scenarios, ensuring the evaluation of RAG systems' clinical knowledge and question-answering abilities.</p>
+                <p>MultiMedQA has the following tasks and evaluation dimensions:</p>
+                <dl>
+                  <dt>Medical question-answering</dt>
+                  <dd>
+                    <p>Assesses the model's ability to retrieve and incorporate relevant medical knowledge to answer questions accurately.</p>
+                  </dd>
+                  <dt>Knowledge retrieval</dt>
+                  <dd>
+                    <p>Evaluates the retrieval component's ability to identify and retrieve pertinent medical information from external sources.</p>
+                  </dd>
+                  <dt>Domain knowledge</dt>
+                  <dd>
+                    <p>Tests the model's understanding and application of specialized medical knowledge.</p>
+                  </dd>
+                </dl>
+              </section>
+              <section data-type="sect5" id="dialogue_cot_chain_of_thought">
+                <h5>Dialogue CoT (Chain-of-Thought)</h5>
+                <p>Dialogue CoT is a benchmark dataset containing dialogues simulating real-world conversational scenarios, including various topics and conversational styles. It incorporates efficient dialogue strategies, such as explicit Chain-of-Thought (CoT), to evaluate RAG systems' depth of understanding and coherence in dialogue interactions.</p>
+                <p>Dialogue CoT has the following tasks and evaluation dimensions:</p>
+                <dl>
+                  <dt>Open-domain dialogue</dt>
+                  <dd>
+                    <p>Assesses the model's ability to engage in natural and coherent conversations across diverse topics.</p>
+                  </dd>
+                  <dt>Knowledge retrieval</dt>
+                  <dd>
+                    <p>Evaluates the retrieval component's ability to identify and retrieve relevant information to support the dialogue.</p>
+                  </dd>
+                  <dt>Reasoning and coherence</dt>
+                  <dd>
+                    <p>Tests the model's ability to maintain a logical flow and provide well-reasoned responses throughout the dialogue.</p>
+                  </dd>
+                </dl>
+              </section>
+              <section data-type="sect5" id="arb_advanced_reasoning_benchmark">
+                <h5>ARB (Advanced Reasoning Benchmark)</h5>
+                <p>ARB is a dataset consisting of complex reasoning tasks across multiple domains, such as STEM, humanities, and logic puzzles. It is designed to evaluate RAG systems' capabilities in advanced reasoning tasks that require multi-step logical reasoning and problem-solving skills.</p>
+                <p>ARB has the following tasks and evaluation dimensions:</p>
+                <dl>
+                  <dt>Logical reasoning</dt>
+                  <dd>
+                    <p>Assesses the model's ability to apply logical principles and reasoning to solve complex problems.</p>
+                  </dd>
+                  <dt>Multi-step problem-solving</dt>
+                  <dd>
+                    <p>Evaluates the model's capacity to break down complex problems into smaller steps and reason through them systematically.</p>
+                  </dd>
+                  <dt>Knowledge integration</dt>
+                  <dd>
+                    <p>Tests the retrieval component's ability to identify and incorporate relevant knowledge from external sources to support reasoning and problem-solving.</p>
+                  </dd>
+                </dl>
+              </section>
+              <section data-type="sect5" id="chatbot_arena">
+                <h5>ChatBot Arena</h5>
+                <p>In addition to the "static" benchmarks mentioned above, ChatBot Arena provides a "dynamic" platform for evaluating and comparing diverse chatbot models through direct user engagement and voting. Unlike traditional benchmarks that rely on predetermined datasets, ChatBot Arena assesses models in realistic interaction scenarios by facilitating live conversations between users and chatbots.</p>
+                <p>Users can interact with different chatbot models and provide real-time feedback by voting on their performance. This dynamic approach offers a unique opportunity to evaluate models in a more naturalistic setting, capturing nuances that may be missed in controlled benchmark scenarios. Figure 3-4 shows the interactive webpage of Chatbot Arena where users can chat with different models. </p>
+                <figure id="fig_7_interface_of_chatbot_arena">
+                  <img src="images/evaluation_of_llm_and_rag_systems_547122_07.png" alt="Interface of Chatbot Arena  https   chat.lmsys.org  "/>
+                  <figcaption>Interface of Chatbot Arena (<a href="https://chat.lmsys.org/">https://chat.lmsys.org/</a>)</figcaption>
+                </figure>
+                <p>Chatbot Arena has the following tasks and evaluation dimensions:</p>
+                <dl>
+                  <dt>Open-domain dialogue</dt>
+                  <dd>
+                    <p>Assesses language understanding, response generation, and coherence.</p>
+                  </dd>
+                  <dt>Task completion</dt>
+                  <dd>
+                    <p>Evaluates the model's ability to understand and complete specific tasks through dialogue.</p>
+                  </dd>
+                  <dt>User engagement</dt>
+                  <dd>
+                    <p>Measures the model's ability to maintain engaging and natural conversations.</p>
+                  </dd>
+                </dl>
+                <p>The dynamic nature of ChatBot Arena complements traditional benchmarks by providing a real-world testing ground for chatbot models. It allows for the evaluation of factors such as adaptability, context-awareness, and user satisfaction, which are crucial for deploying chatbots in practical applications.</p>
+                <p>By evaluating LLMs and RAG systems using these diverse benchmarks, researchers and developers can gain comprehensive insights into their models' language abilities, reasoning capabilities, knowledge retrieval, domain-specific knowledge, and overall performance in various tasks and scenarios. This evaluation process is crucial for identifying strengths, weaknesses, and areas for improvement, ultimately contributing to the development of more effective and reliable language models and retrieval-augmented systems.</p>
+              </section>
+            </section>
+          </section>
+          <section data-type="sect3" id="how_to_construct_the_data">
+            <h3>How to Construct the Data</h3>
+            <p>Evaluation data for LLMs and RAG systems can be constructed from various sources, including:</p>
+            <dl>
+              <dt>Existing benchmarks from specific domains</dt>
+              <dd>
+                <p>Leveraging established benchmarks and datasets from domains like medicine, finance, or legal, which are designed to test domain-specific knowledge and performance.</p>
+              </dd>
+              <dt>Web crawled data</dt>
+              <dd>
+                <p>Crawling and curating data from the internet, such as news articles, blog posts, or online forums, to create a diverse and representative dataset for evaluating LLMs on real-world content.</p>
+              </dd>
+              <dt>Sampling from proprietary data</dt>
+              <dd>
+                <p>Companies can sample from their own data sources, such as customer service chat logs or product reviews, to construct evaluation datasets that are tailored to their specific use cases and domains. For example, utilize a hybrid strategy in the data pipeline, incorporating both human-annotated and synthetic data, and conduct thorough data curation.</p>
+              </dd>
+              <dt>LLM-generated questions</dt>
+              <dd>
+                <p>Using LLMs themselves to generate questions or prompts, which can then be used to evaluate other LLMs or RAG systems, leveraging the models' own capabilities to create diverse and challenging evaluation data.</p>
+              </dd>
+            </dl>
+          </section>
+          <section data-type="sect3" id="ad_hoc_vs_continuous_measurement">
+            <h3>Ad-hoc vs. Continuous Measurement</h3>
+            <p>Building robust measurement data is critical for evaluating LLM and RAG systems. This data allows us to gauge their effectiveness, identify areas for improvement, and ensure they meet user needs. Table 3-2 explains the differences between ad-hoc and continuous measurement approaches.</p>
+            <table>
+              <caption>Ad-hoc vs. Continuous Measurement</caption>
+              <thead>
+              <tr>
+                <th/>
+                <th>Purpose</th>
+                <th>Characteristics</th>
+                <th>Benefits</th>
+              </tr></thead>
+              <tbody>
+              <tr>
+                <td>Ad-hoc measurement</td>
+                <td>Primarily used for benchmarking and comparing the performance of competing models or systems at a specific point in time.</td>
+                <td>Typically a one-off measurement set, designed for a particular evaluation task.<br/> <br/> Does not account for the inevitable shift in user queries and interaction patterns that occur as the system is deployed and used in real-world scenarios (distribution shift).</td>
+                <td>Offers a standardized way to compare models and identify relative strengths and weaknesses.<br/> <br/> Useful for initial evaluations and establishing baseline performance metrics.<br/> <br/> </td>
+              </tr>
+              <tr>
+                <td>Continuous Measurement</td>
+                <td>Captures the system's performance over time by continuously sampling user queries or interactions.</td>
+                <td>Accounts for the distribution shift in user behavior as the system encounters new data and use cases in a dynamic environment.<br/> <br/> Provides ongoing insights into how the system is performing in real-world situations.</td>
+                <td>Enables continuous improvement by identifying areas where the system struggles with evolving user queries or interaction patterns.<br/> <br/> Helps ensure the system remains relevant and effective as user behavior and expectations change.</td>
+              </tr>
+              </tbody>
+            </table>
+            <p>In many cases, a combination of both approaches can be most effective. An initial ad-hoc evaluation can establish baseline performance, while continuous measurement allows for ongoing monitoring and refinement.</p>
+            <p>By leveraging diverse datasets constructed through various methods and platforms, you can conduct comprehensive evaluations of LLM and RAG systems across different tasks and domains, facilitating the development and improvement of these systems for real-world applications.</p>
+          </section>
+        </section>
+        <section data-type="sect2" id="evaluation_methods">
+          <h2>Evaluation Methods</h2>
+          <p>We can rely on human experts, crowdsourcing, or LLM for data labeling. In this section, we will delve into the details of leveraging LLMs for evaluations and then compare the three modes of evaluation.</p>
+          <section data-type="sect3" id="llm_for_evaluation">
+            <h3>LLM for Evaluation</h3>
+            <p>Traditionally, data labeling for evaluation relies on human experts or crowdsourcing. However, LLMs offer a novel approach. This section explores three LLM-based evaluation methods. We'll discuss how each method works and its strengths and weaknesses. </p>
+            <p>The first approach is <em>self-consistency</em>. The idea of self-consistency is that we can generate multiple independent outputs from the same prompt and compare the consistency among them. If the outputs are similar or consistent with each other, then we can infer that the output has a higher confidence. Otherwise, we can conclude that the output has low confidence. One potential issue with this approach is that all the outputs may be consistent with each other, but they could all be wrong. Figure 3-5 vividly illustrates how self-consistency is implemented in a workflow.</p>
+            <figure id="fig_8_explanation_of_self_consistency_the_llm_generated">
+              <img src="images/evaluation_of_llm_and_rag_systems_547122_08.png" alt="Explanation of self consistency  the LLM generated sentence is compared against randomly generated responses with no external database  and a self consistency score is computed to determine the confidence of the generated sentence."/>
+              <figcaption>Explanation of self-consistency: the LLM-generated sentence is compared against randomly generated responses with no external database, and a self-consistency score is computed to determine the confidence of the generated sentence.</figcaption>
+            </figure>
+            <p>The second approach is <em>reasoning reflection</em>. In self-consistency, we measure the confidence of generated text as the similarity among randomly drawn LLM generations, while in reasoning reflection, we ask LLM to do reflection to see whether it is confident about the output. This can be implemented by either interacting with the external environment for more evidence or leveraging the reasoning ability of LLM without additional evidence. Ultimately, we associate a level of confidence with the output result.</p>
+            <p>The third approach is called <em>Chain of Verification (CoVe)</em>, which was introduced by Facebook in September 2023. The idea of CoVe is that we start by having some baseline response, and then generate some verifying questions. We answer those verifying questions independently and find the responses that are consistent with the verified results. Figure 3-6 graphically illustrates the implementation of CoVe with a concrete example to name some politicians born in New York. The steps are as follows:</p>
+            <ol>
+              <li>
+                <p>Generate the baseline response. The initial responses include politicians like Hilary Clinton, Donald Trump, and Michael Bloomberg who may or may not be born in New York.</p>
+              </li>
+              <li>
+                <p>Generate a series of verification questions, like “where was Hilary Clinton born”, “Where was Donald Trump born” etc.</p>
+              </li>
+              <li>
+                <p>Independently answer the verifying questions. Sample answers can include “Hilary Clinton was born in Chicago, Illinois, United States on October 26, 1947”. These answers can be generated with the help of external grounding information.</p>
+              </li>
+              <li>
+                <p>Verify the initial responses with the answers from the previous step. From the answers from step 3, we know that Hilary Clinton was born in Chicago, Donald Trump in New York City, and Michael Bloomberg in Boston. So in the final verified response, we remove both Hilary Clinton and Michael Bloomberg.</p>
+              </li>
+            </ol>
+            <figure id="fig_9_explanation_of_the_facebook_chain_of_verification">
+              <img alt="Explanation of the Facebook Chain of Verification  CoVe  approach." src="images/evaluation_of_llm_and_rag_systems_547122_09.png"/>
+              <figcaption>Explanation of the Facebook Chain of Verification (CoVe) approach.</figcaption>
+            </figure>
+          </section>
+          <section data-type="sect3" id="comparison_of_evaluation_methods">
+            <h3>Comparison of Evaluation Methods</h3>
+            <p>Each of the evaluation methods, human expert labeling, crowdsourcing, and LLM-based labeling have their own advantages and disadvantages when it comes to labeling data for machine learning tasks. Table 3-3 lists the three pros and cons of each one.</p>
+            <table>
+              <caption>Pros and cons of human labeling, crowdsourcing, and LLM-based labeling.</caption>
+              <thead>
+              <tr>
+                <th/>
+                <th>Pros</th>
+                <th>Cons</th>
+              </tr></thead>
+              <tbody>
+              <tr>
+                <td>Human expert labeling</td>
+                <td>
+                  <ul>
+                    <li>High accuracy and quality, especially for complex tasks.</li>
+                    <li>Ability to understand nuanced and context-specific information.</li>
+                    <li>Can provide insights and feedback on the labeling process.</li>
+                  </ul>
+                </td>
+                <td>
+                  <ul>
+                    <li>More expensive compared to other methods. </li>
+                    <li>Slower process due to the manual effort involved. </li>
+                    <li>Potential for human error or bias.</li>
+                  </ul>
+                </td>
+              </tr>
+              <tr>
+                <td>Crowdsourcing</td>
+                <td>
+                  <ul>
+                    <li>Cost-effective and can be scaled easily. </li>
+                    <li>Faster turnaround time due to the involvement of a large number of crowd workers. </li>
+                    <li>Diversity of opinions can lead to more robust data sets.</li>
+                  </ul>
+                </td>
+                <td>
+                  <ul>
+                    <li>Quality control can be challenging and may require additional validation steps. </li>
+                    <li>Not suitable for highly specialized or confidential tasks.</li>
+                    <li>Risk of low-quality contributions if not managed properly.</li>
+                  </ul>
+                </td>
+              </tr>
+              <tr>
+                <td>LLM labeling</td>
+                <td>
+                  <ul>
+                    <li>Can process large volumes of data quickly. </li>
+                    <li>Consistent in labeling once trained properly. </li>
+                    <li>Can be fine-tuned for specific tasks or domains.</li>
+                  </ul>
+                </td>
+                <td>
+                  <ul>
+                    <li>Requires high-quality training data to perform well. </li>
+                    <li>May struggle with tasks that require human judgment or common sense.</li>
+                    <li>Potential for perpetuating biases present in the training data.</li>
+                  </ul>
+                </td>
+              </tr>
+              </tbody>
+            </table>
+            <p>LLMs offer a tempting alternative to traditional crowdsourcing for labeling tasks, as they can potentially save money and improve accuracy. However, the choice of the best evaluation method depends on several factors, such as the accuracy level, data volume, task complexity, and budget constraints. Sometimes, a hybrid approach that combines LLMs with other methods can achieve a better trade-off between speed and quality. For example, you can use GPT/LLM for a quick first pass and then have humans check the difficult cases. You can use crowdsourcing for tasks that need a diverse input but not a high expertise. And you can still rely on human labeling for tasks that demand a deep understanding and precision. You can also train your own machine learning models on LLM labels to get high-quality labels at a lower cost.</p>
+          </section>
+        </section>
+      </section>
+      <section data-type="sect1" id="case_study">
+        <h1>Case Study</h1>
+        <p>In this case study, we show how to use common evaluation tools including OpenAI Evals and Trulens to conduct retrieval system evaluation and end-to-end evaluation. Selecting the right metrics for evaluating an LLM's performance must consider the model of interaction and type of expected answer to ensure the model meets the intended use case requirements effectively.</p>
+        <p>OpenAI Evals is a popular tool, offering an open-source framework specifically designed for assessing the output of LLMs. With OpenAI Evals, we can meticulously evaluate LLM-generated completions against a predefined reference ground truth. The framework provides the flexibility to customize and expand datasets, enabling the addition of new completions or instructions, such as chains of thought. OpenAI Evals datasets are structured in a specific format, facilitating efficient evaluation processes and ensuring consistency. Additionally, contextual relevance, a crucial aspect of LLM evaluation, is meticulously examined using Evals. This involves assessing the relevance of the retrieved context to the original query, with options for binary classification or more sophisticated ranking metrics.</p>
+        <p>Trulens is an essential evaluation framework that offers advanced capabilities in evaluating the contextual relevance of retrieved information. This tool focuses on analyzing the alignment between the retrieved context and the user's original query. By employing sophisticated algorithms, Trulens enables binary classification of relevance or employs ranking metrics to provide deeper insights into the quality of retrieved information. Its intuitive interface and powerful analytics make Trulens an indispensable resource for assessing the effectiveness and accuracy of retrieval mechanisms, ensuring that the systems deliver contextually relevant responses to user queries. Together, these tools play a vital role in advancing the field of NLP evaluation, empowering researchers and practitioners to optimize the performance of language models and enhance the overall user experience. Prevalent evaluation metrics for LLMs offer a multifaceted view of model performance, encompassing aspects such as relevance, hallucination detection, question-answering precision, toxicity assessment, and retrieval-focused metrics.</p>
+        <section data-type="sect2" id="retrieval_evaluation">
+          <h2>Retrieval Evaluation</h2>
+          <p>Let's continue working with the Hugging Face 'xsum dataset', which encompasses a compilation of BBC articles alongside their corresponding summaries. We will leverage this dataset to evaluate the accuracy and relevance of the information retrieved by the RAG system.</p>
+          <p>In evaluating the retrieval process, the focus lies on assessing the equality of retrieved chunks when provided with a user query. This process involves creating a dataset where the input consists of queries and the desired output constitutes the "ground-truth" documents relevant to those queries. Subsequently, the retriever is executed over this dataset to retrieve relevant documents. Ranking metrics are then measured to gauge the success rate or hit rate, as well as MRR, introduced in “Key Metrics for Evaluating Retrieval Systems”, providing insights into the effectiveness of the retrieval process.</p>
+          <section data-type="sect3" id="step_1_reading_data_and_creating_documents">
+            <h3>Step 1 - Reading data and creating documents</h3>
+            <p>Follow the instructions provided in Step 1 of the "Vector Store Query Engine" section in Chapter 2 to create the document folder “./document/". The directory containing the saved documents, initialized the “SimpleDirectoryReader” instance and used the “load_data()” method to read the documents into the variable “documents”. </p>
+          </section>
+          <section data-type="sect3" id="step_2_build_index">
+            <h3>Step 2 - Build Index</h3>
+            <p>After loading the documents, we can set up and utilize the OpenAI API within the context of the Llama index, to create the vector index using the following code:</p>
+            <div data-type="example">
+              <pre data-type="programlisting">from dotenv import load_dotenv, find_dotenv
+import os
+import openai
+llama_index.core.node_parser import SimpleNodeParser
+# Define an LLM
+_ = load_dotenv(find_dotenv())                                                                                          
+openai.api_key = os.getenv('OPENAI_API_KEY')
+llm = OpenAI(model="gpt-4")                                                                                             
+# Build index with a chunk_size of 512
+node_parser = SimpleNodeParser.from_defaults(chunk_size=512)                                 
+nodes = node_parser.get_nodes_from_documents(documents)
+vector_index = VectorStoreIndex(nodes)</pre>
+            </div>
+            <p>Note that a “SimpleNodeParser“ object is created with default settings to parse nodes from the documents using chunk_size of 512. The “get_nodes_from_documents” method is called on the “node_parser” object to extract nodes from the provided documents. Lastly, a vector index is built using the extracted nodes. The “VectorStoreIndex” class is used to create the index, and it takes the extracted nodes as input. This index “vector_index” will facilitate efficient retrieval of relevant information during subsequent operations.</p>
+          </section>
+          <section data-type="sect3" id="step_3_build_a_queryengine_and_start_querying">
+            <h3>Step 3 - Build a QueryEngine and start querying</h3>
+            <p>With the index ready, we can use the following code to build a query engine and start queries: </p>
+            <div data-type="example">
+              <pre data-type="programlisting"># Build a query engine
+query_engine = index.as_query_engine()
+response = query_engine.query(
+    "I'm looking for information on Harry Potter. What could you suggest to me?"
+)
+print(str(response))</pre>
+            </div>
+            <p>Output:</p>
+            <div data-type="example">
+              <pre data-type="programlisting">You may want to explore the Harry Potter series of books written by J.K. Rowling, which have sold over 450 million copies worldwide since 1997. Additionally, there are eight film adaptations based on the books. Another interesting aspect to look into is "Harry Potter and the Cursed Child," a play that has received five-star reviews from critics and is considered a game-changing production.</pre>
+            </div>
+            <p>This question is seeking recommendations or information related to "Harry Potter". The output is the response generated by the query engine for the given question. In this case, the response suggests exploring the Harry Potter series of books written by J.K. Rowling, which have sold over 450 million copies worldwide since 1997. Additionally, it mentions the existence of eight film adaptations based on the books and highlights "Harry Potter and the Cursed Child," a play that has received critical acclaim. The query engine processes the query and retrieves relevant information from the index, providing a good response to the query.</p>
+          </section>
+          <section data-type="sect3" id="step_4_generate_question_context_pair">
+            <h3>Step 4 - Generate question-context pair</h3>
+            <p>After building the query engine, we can start evaluating it. It's essential to have queries that can fetch the correct context and subsequently generate an appropriate response. The code for generating the question context pair is as follows:</p>
+            <div data-type="example">
+              <pre data-type="programlisting">from llama_index.evaluation import generate_question_context_pairs
+# Generate pairs of questions and corresponding contexts
+qa_dataset = generate_question_context_pairs(
+    nodes,
+    llm=llm,
+    num_questions_per_chunk=2
+)</pre>
+            </div>
+            <p>The function generates pairs of questions and corresponding contexts. It processes each node in the dataset “nodes” and utilizes the LLM model “llm” to generate a specified number of questions “num_questions_per_chunk” per chunk of data. The generated questions are paired with their corresponding context from the dataset.</p>
+          </section>
+          <section data-type="sect3" id="step_5_generate_retrieval_evaluation">
+            <h3>Step 5 - Generate <span>Retrieval</span><span> Evaluation</span></h3>
+            <p>We can now prepare to conduct our retrieval evaluations using the following code. It involves setting up a retriever for retrieving relevant information based on vector similarity and then evaluating its performance using a dataset of question-context pairs. </p>
+            <div data-type="example">
+              <pre data-type="programlisting">retriever = vector_index.as_retriever(similarity_top_k=2) <img alt="1" src="callouts/1.png" />
+              
+              retriever_evaluator = RetrieverEvaluator.from_metric_names( <img alt="2" src="callouts/2.png" />                                       
+    ["mrr", "hit_rate"], retriever=retriever
+)
+
+eval_results = await
+retriever_evaluator.aevaluate_dataset(qa_dataset) <img alt="3" src="callouts/3.png" />                            </pre>
+            </div>
+
+                <p><img alt="1" src="callouts/1.png" /> The “vector_index.as_retriever” method is used to create a retriever object. The parameter “similarity_top_k” specifies the number of top similar documents to retrieve for each query. This retriever will use vector similarity to find relevant documents based on the provided context.</p>
+                <p><img alt="2" src="callouts/2.png" /> An “evaluator” for the retriever is created using the “from_metric_names” method of the “RetrieverEvaluator”. The evaluator will measure the MRR and Hit Rate metrics. The retriever parameter specifies the retriever object to be evaluated.</p>
+                <p><img alt="3" src="callouts/3.png" /> The “retriever” using the provided “qa_dataset” computes the metrics (MRR and Hit Rate). The results are stored in the “eval_results” variable. The use of “await” means that this operation is asynchronous.</p>
+
+            <p>Finally, we can show the evaluation results using the following code:</p>
+            <div data-type="example">
+              <pre data-type="programlisting">def display_results(name, eval_results):
+
+    metric_dicts = []
+    for eval_result in eval_results:
+        metric_dict = eval_result.metric_vals_dict
+        metric_dicts.append(metric_dict)
+    full_df = pd.DataFrame(metric_dicts)
+    hit_rate = full_df["hit_rate"].mean()
+    mrr = full_df["mrr"].mean()
+    metrics =  {"Retriever Name": [name], 
+                "Hit Rate": [hit_rate], 
+                "MRR": [mrr]}
+    return metrics
+
+display_results("OpenAI Embedding Retriever", eval_results)</pre>
+            </div>
+            <p>Output:</p>
+            <div data-type="example">
+              <pre data-type="programlisting">{'Retriever Name': ['OpenAI Embedding Retriever'],
+ 'Hit Rate': [0.9273846153846154],
+ 'MRR': [0.8507692307692307]}</pre>
+            </div>
+            <p>The code defines a function called “display_results(name, eval_results)” to process the evaluation results of a retriever and summarize its performance metrics into a dictionary. It iterates through each evaluation result, accessing its metric values. The function calculates the mean of the “hit_rate” column from the DataFrame to get the average hit rate across all evaluations. Similarly, it calculates the average of the “mrr” column to get the average MRR. The output shows that, on average, the hit rate was about 0.9274, and the MRR was about 0.8508. The observation that MRR is less than the hit rate indicates that the top-ranking results aren't always the most relevant, so there's room for improvement in ensuring the most relevant results appear at the top.</p>
+          </section>
+        </section>
+        <section data-type="sect2" id="end_to_end_evaluation_2">
+          <h2>End-to-end Evaluation</h2>
+          <p>In this case study, we will show how to use OpenAI Evals and Trulens to conduct end-to-end evaluation. TruLens provides a set of <a href="https://www.trulens.org/trulens_eval/evaluation/feedback_implementations/stock/">feedback functions</a>, analogous to labeling functions, to programmatically score the input, output, and intermediate text of an LLM application. Aligned with "Evaluation Metrics" in Table 3-1, we track the following metrics in this case study:</p>
+          <dl>
+            <dt>Answer relevancy </dt>
+            <dd>
+              <p>This<em> </em>measures how relevant the generated answer is to the question. This metric is computed using the LLM chat completion model. It involves a function that completes a template to assess the relevance of the response to a prompt, employing a chain of thought methodology to provide the reasoning behind the evaluation.</p>
+            </dd>
+            <dt>Context relevance </dt>
+            <dd>
+              <p>This<em> </em>determines the accuracy of LLM outputs in relation to the respective context in the evaluation dataset. Specifically, context precision measures the signal-to-noise ratio of the retrieved context, while context recall assesses whether all the relevant information required to answer the question was retrieved.</p>
+            </dd>
+            <dt>Groundedness </dt>
+            <dd>
+              <p>This is a metric in the framework that relies on human-annotated ground truth labels and contexts. It tracks whether the source material supports each sentence in the statement using LLM models. The LLM processes the entire statement at once, using a chain of thought methodology to provide the reasoning behind the assessment.</p>
+            </dd>
+            <dt>Hate score </dt>
+            <dd>
+              <p>This<em> </em>evaluates text to determine if it contains hate speech. This metric is crucial for identifying and mitigating harmful or offensive content, ensuring that LLM adheres to ethical and community standards. </p>
+            </dd>
+            <dt>Coherence </dt>
+            <dd>
+              <p>This uses a chat completion model to evaluate the logical flow and clarity of text. It involves a function that completes a template designed to assess the coherence of the given text. This evaluation employs a chain of thought methodology, where the model provides detailed reasoning behind its assessment, ensuring that the text is logically consistent and easy to understand.</p>
+            </dd>
+          </dl>
+          <section data-type="sect3" id="step_1_reading_data_and_creating_documents_2">
+            <h3>Step 1 - Reading data and creating documents </h3>
+            <p>The steps to build the retrieval engine are identical to those described in Step 1 of the “Retrieval Evaluation” section.</p>
+          </section>
+          <section data-type="sect3" id="step_2_build_sentence_window_retrieval">
+            <h3>Step 2 - Build Sentence Window Retrieval </h3>
+            <p>After loading the documents, we can set up and utilize the OpenAI API within the context of the Llama index, to create the sentence window node parser using the following code. We define the "build_sentence_window_index" function, which builds an index from a single document. It requires a document, a language model, an embedding model, and a directory path for saving the index.</p>
+            <div data-type="example">
+              <pre data-type="programlisting">from llama_index import ServiceContext, VectorStoreIndex, StorageContext
+from llama_index.node_parser import SentenceWindowNodeParser
+from llama_index.llms import OpenAI
+
+def build_sentence_window_index(document, llm, embed_model, save_dir):
+   node_parser = SentenceWindowNodeParser.from_defaults( <img alt="1" src="callouts/1.png" />                                         
+        window_size=3,
+        window_metadata_key="window",
+        original_text_metadata_key="original_text",
+    )
+    sentence_context = ServiceContext.from_defaults( <img alt="2" src="callouts/2.png" />                                                   
+        llm=llm,
+        embed_model="local:BAAI/bge-small-en-v1.5",
+        node_parser=node_parser,
+    )
+    if not os.path.exists(save_dir):
+        sentence_index = VectorStoreIndex.from_documents( <img alt="3" src="callouts/3.png" />                                       
+            [document], service_context=sentence_context
+        )
+
+sentence_index.storage_context.persist(persist_dir="sentence_index")
+    else:
+        sentence_index = load_index_from_storage(
+
+StorageContext.from_defaults(persist_dir="sentence_index"),
+            service_context=sentence_context,
+        )
+    return sentence_index
+    
+llm = OpenAI(model="gpt-3.5-turbo", temperature=0.1) <img alt="4" src="callouts/4.png" />                                                
+sentence_index = build_sentence_window_index( <img alt="5" src="callouts/5.png" />                                           
+    document,
+    llm,
+    embed_model="local:BAAI/bge-small-en-v1.5",
+    save_dir="sentence_index"
+)</pre>
+            </div>
+                <p><img alt="1" src="callouts/1.png" /> An instance of “SentenceWindowNodeParser” is instantiated with default settings, which defines how the document will be parsed into data nodes. Each node corresponds to a sentence window, and the parser uses a window size of 3 sentences.</p>
+                <p><img alt="2" src="callouts/2.png" /> The “ServiceContext” object is created to encapsulate the settings and models used for indexing, including the embedding model and the node parser.</p>
+                <p><img alt="3" src="callouts/3.png" /> As for index building and loading, if the save directory does not exist, it creates a new “VectorStoreIndex” from the document using the defined “ServiceContext”. This index is then saved to the specified directory. If the save directory already exists, the function loads an existing index from this location using “StorageContext”.</p>
+                <p><img alt="4" src="callouts/4.png" /> This statement sets the OpenAI's API key. And also, an OpenAI instance “llm” is configured with a temperature setting (0.1) and model (“gpt-3.5-turbo”). </p>
+                <p><img alt="5" src="callouts/5.png" /> The function returns the “sentence_index”, which could be ready for use in querying the document based on its sentence structure.</p>
+          </section>
+          <section data-type="sect3" id="step_3_build_a_queryengine_and_start_querying_2">
+            <h3>Step 3 - Build a QueryEngine and start querying</h3>
+            <p>After loading the documents and creating the sentence window index, we can use the following code to build the query engine and start querying. First, we define a "get_sentence_window_query_engine " function. In this function, the argument “sentence_index” is represented in a vector space to perform similarity searches; the argument “similarity_top_k” specifies the number of top similar results to return, and the argument “rerank_top_n” is used in the reranking phase to narrow down the results to the top N most relevant entries. </p>
+            <div data-type="example">
+              <pre data-type="programlisting">
+from llama_index.indices.postprocessor import MetadataReplacementPostProcessor
+from llama_index.indices.postprocessor import SentenceTransformerRerank
+from llama_index import load_index_from_storage
+
+def get_sentence_window_query_engine(sentence_index, similarity_top_k=6, rerank_top_n=2):
+    postproc = MetadataReplacementPostProcessor(target_metadata_key="window") <img alt="1" src="callouts/1.png" />   
+    rerank = SentenceTransformerRerank( <img alt="2" src="callouts/2.png" />                                                                 
+        top_n=rerank_top_n, 
+        model="BAAI/bge-reranker-base"
+    )
+    sentence_window_engine = sentence_index.as_query_engine( <img alt="3" src="callouts/3.png" />                                 
+        similarity_top_k=similarity_top_k, node_postprocessors=[postproc, rerank]
+    )
+    return sentence_window_engine
+sentence_window_engine = get_sentence_window_query_engine(sentence_index) <img alt="4" src="callouts/4.png" /></pre>
+            </div>
+                <p><img alt="1" src="callouts/1.png" /> “MetadataReplacementPostProcessor” replaces the metadata of the nodes in the query results with the metadata specified by “target_metadata_key”, in this case, "window". This step is used to present more meaningful contextual information in the search results.</p>
+                <p><img alt="2" src="callouts/2.png" /> “SentenceTransformerRerank” uses a transformer model "BAAI/bge-reranker-base" to re-evaluate and rank the top results obtained from the initial query. The re-ranker limits its focus to the top rerank_top_n results.</p>
+                <p><img alt="3" src="callouts/3.png" /> “sentence_index” uses the “as_query_engine” method with the specified number of “similarity_top_k” to create “sentence_window_engine”. It includes the defined post-processors (postproc and rerank) in its setup. This setup configures how the query engine will process and refine search queries, first finding the top K similar items, then reranking the best N of them based on the transformer model's assessment.</p>
+                <p><img alt="4" src="callouts/4.png" /> The configured query engine is returned, and “sentence_window_engine” is ready to be used to execute queries against the sentence index, providing refined search results based on the configured similarity and reranking criteria.</p>
+            <p>With the “sentence_window_engine” ready, we can use the following code to build a query and get results. </p>
+            <div data-type="example">
+              <pre data-type="programlisting">result = sentence_window_engine.query("I'm looking for information on Harry Potter. What could you suggest to me?")
+result.response</pre>
+            </div>
+            <p>Output:</p>
+            <div data-type="example">
+              <pre data-type="programlisting">'I would suggest looking into the Harry Potter books, which have sold over 450 million copies since 1997 and have been adapted into eight films. Additionally, you may want to explore the script of Harry Potter and the Cursed Child, which is being published this weekend and has received five-star reviews from critics.'</pre>
+            </div>
+            <p>The “query” method of the “sentence_window_engine” is used with the question of Harry Potter. This response summarizes key information about the "Harry Potter" series, including book sales, film adaptations, and a notable script. It indicates that the query engine identifies relevant information based on the user's inquiry and provides meaningful answers.</p>
+          </section>
+          <section data-type="sect3" id="step_4_define_feedback_functions">
+            <h3>Step 4 - Define Feedback Functions</h3>
+            <p>After building the query engine, we can create feedback functions in the following code to evaluate the RAG applications. In this step, we use the “trulens_eval” library to import the “Feedback” class, creating various feedback dimensions that assess the quality of responses, ensuring they are relevant, factually accurate, non-offensive, and logically coherent. </p>
+            <div data-type="example">
+              <pre data-type="programlisting">
+from trulens_eval import Feedback
+
+# Answer Relevance
+f_qa_relevance = ( <img alt="1" src="callouts/1.png" />                                                                                                            
+    Feedback(provider.relevance_with_cot_reasons,
+             name="Answer Relevance"
+).on_input_output()
+
+# Context Relevance
+f_qs_relevance = ( <img alt="2" src="callouts/2.png" />                                                                                                 
+    Feedback(provider.qs_relevance_with_cot_reasons,
+             name="Context Relevance")
+    .on_input()
+    .on(context_selection)
+    .aggregate(np.mean)
+)
+
+# Groundedness
+grounded = Groundedness(groundedness_provider=provider) <img alt="3" src="callouts/3.png" />                                                                                                                                  
+f_groundedness = (
+    Feedback(grounded.groundedness_measure_with_cot_reasons,
+             name="Groundedness"
+            )
+    .on(context_selection)
+    .on_output()
+    .aggregate(grounded.grounded_statements_aggregator)
+)
+
+# Hate Content Moderation
+f_hate = ( <img alt="4" src="callouts/4.png" />                                                                                   
+    Feedback(provider.moderation_hate,
+    name="Hate",
+    higher_is_better=False)
+    .on_input()
+)
+
+# Coherence
+f_coherence = ( <img alt="5" src="callouts/5.png" />                                                                    
+    Feedback(provider.coherence_with_cot_reasons, 
+    name="Coherence").on_output()
+)</pre>
+            </div>
+                <p><img alt="1" src="callouts/1.png" /> “f_qa_relevance” is assigned a “Feedback” object evaluating the answer relevance. “provider.relevance_with_cot_reasons” indicates that the relevance evaluation includes a "chain of thought" reasoning behind the responses.</p>
+                <p><img alt="2" src="callouts/2.png" /> “f_qs_relevance” is assigned a “Feedback” object for context relevance evaluation. “provider.qs_relevance_with_cot_reasons” evaluates how relevant the response is within the provided context, providing a general score of context relevance.</p>
+                <p><img alt="3" src="callouts/3.png" /> “grounded” is an instance of a “Groundedness” class, initialized with a provider that includes methods to assess how well-grounded the responses are. “f_groundedness” is a Feedback object for assessing the groundedness of the outputs, measuring the factual and logical support of the responses.</p>
+                <p><img alt="4" src="callouts/4.png" /> “f_hate” is a “Feedback” object to detect and evaluate hate speech within the outputs “provider.moderation_hate” is a method to check for hate speech. “higher_is_better=False” specifies that lower values are better, as more hate speech is undesirable.</p>
+                <p><img alt="5" src="callouts/5.png" /> “f_coherence” is a “Feedback” object assessing the coherence of the responses: “provider.coherence_with_cot_reasons” evaluates how logically coherent the responses are, including reasoning details.</p>
+            <p>These feedback mechanisms are crucial for refining RAG applications, making them more reliable and useful in real-world applications. Each feedback aspect is designed to target specific evaluation dimensions.</p>
+          </section>
+          <section data-type="sect3" id="step_5_generate_retrieval_evaluation_2">
+            <h3>Step 5 - Generate <span>Retrieval </span><span>Evaluation</span></h3>
+            <p>Next, we can use feedback functions to evaluate the RAG applications, as shown in the following code, using the “trulens_eval” and its “TruLlama”class to evaluate RAG systems. </p>
+            <div data-type="example">
+              <pre data-type="programlisting">
+from trulens_eval import TruLlama
+from trulens_eval import FeedbackMode
+
+tru_recorder = TruLlama( <img alt="1" src="callouts/1.png" />                                                                                                                   
+    sentence_window_engine,
+    app_id="RAG_Evaluation",
+    feedbacks=[
+        f_qa_relevance,
+        f_qs_relevance,
+        f_groundedness,
+        f_hate,
+        f_coherence
+    ]
+)
+
+eval_questions = [] <img alt="2" src="callouts/2.png" />                                                                                  
+with open('eval_questions.txt', 'r') as file:
+    for line in file:
+        item = line.strip()
+        eval_questions.append(item)
+
+for question in eval_questions:                                                                                          
+    with tru_recorder as recording: <img alt="3" src="callouts/3.png" />
+        sentence_window_engine.query(question)                                                                
+tru.get_leaderboard(app_ids=["RAG_Evaluation"]).to_dict() <img alt="4" src="callouts/4.png" /></pre>
+            </div>
+            <p>Output:</p>
+            <div data-type="example">
+              <pre data-type="programlisting">{ 'Answer Relevance': {'RAG_Evaluation': 1.0},
+'Context Relevance': {'RAG_Evaluation': 0.25},
+ 'Groundedness': {'RAG_Evaluation': 0.8333333333333333},
+ 'Hate': {'RAG_Evaluation': 1.1078228453698102e-05},
+ 'Coherence': {'RAG_Evaluation': 0.9},
+ 'latency': {'RAG_Evaluation': 2.0},
+ 'total_cost': {'RAG_Evaluation': 0.0007395000000000001}}</pre>
+            </div>
+                <p><img alt="1" src="callouts/1.png" /> “tru_recorder” is an instance of “TruLlama” initializing with several parameters: “sentence_window_engine” is the engine that will be evaluated. “app_id” is set to "RAG_Evaluation", identifying the evaluation session for later reference. “feedbacks” is a list of functions defined in the previous step to evaluate the engine's responses.</p>
+                <p><img alt="2" src="callouts/2.png" /> It reads questions from a file “eval_questions.txt”, which is defined in Steps 4 of the “Retrieval Evaluation” section. Each line in the file is stripped of the newline character and appended to the eval_questions list. For each question in eval_questions.</p>
+                <p><img alt="3" src="callouts/3.png" /> The script uses the “sentence_window_engine” to generate a query within a context managed by tru_recorder. The with tru_recorder as recording: syntax implies that some form of recording or tracking of the evaluation metrics occurs at this step.</p>
+                <p><img alt="4" src="callouts/4.png" /> The statement is called to retrieve the evaluation results for the session identified by "RAG_Evaluation", which aggregates metrics across all queries to provide a leaderboard-style evaluation summary statistics.</p>
+            <p>The output is a dictionary summarizing various metrics for the app ID "RAG_Evaluation":</p>
+            <ul>
+              <li>
+                <p>“Answer Relevance” score equal to 1.0 suggests perfect relevance of the answers to the queries.</p>
+              </li>
+              <li>
+                <p>“Context Relevance” score equal to 0.25 indicates low relevance of the answers in relation to the query context.</p>
+              </li>
+              <li>
+                <p>“Groundedness” score equal to 0.83 suggests a high degree of how well the answers are based on factual, logical reasoning or data.</p>
+              </li>
+              <li>
+                <p>“Hate” score equal to 1.10e-05 indicates an extremely low presence of hateful or inappropriate content.</p>
+              </li>
+              <li>
+                <p>“Coherence” score equal to 0.9 shows a high level of logical and semantic coherence in the responses.</p>
+              </li>
+              <li>
+                <p>The outputs also include “Latency” and “Total Cost” which could help track efficiency and computational cost.</p>
+              </li>
+            </ul>
+            <p>It is worth mentioning that a “Context Relevance” score of 0.25 signifies that the answers provided are poorly aligned with the query context. This underscores the need for further investigation and improvement of the RAG system. To enhance context relevance, we can consider leveraging more sophisticated retrieval methods that utilize vector stores, knowledge graphs, or hybrid mechanisms.</p>
+          </section>
+        </section>
+        <section data-type="sect2" id="summary_idHwxTIB">
+          <h2>Summary</h2>
+          <p>In this chapter, we began by exploring the key evaluation dimensions and metrics used to assess RAG retrieval systems. We then focused on the evaluation process for these systems, including the dimensions, tasks, and metrics for evaluating RAG end-to-end systems.</p>
+          <p>We compared different evaluation dimensions, and detailed the tasks assigned for model testing, along with the metrics used to assess their performance. We also demonstrated methods for constructing measurement datasets and employing both automated and human evaluation techniques.</p>
+          <p>Finally, we looked at a case study that illustrates the practical application of these evaluation frameworks. It showed how they can be utilized to optimize LLMs and RAG systems in real-world scenarios, emphasizing the importance of precise and thorough model evaluation.</p>
+          <p>In the next chapter, we will explore traditional search systems, laying the groundwork for the integration of advanced technologies. We will examine how LLMs enhance query understanding and the role of RAG in query processing. The discussion will extend to the use of advanced AI techniques for intent recognition and innovations in result retrieval and summarization, providing a detailed view of the intersection of search technology and RAG applications.</p>
+        </section>
+      </section>
+    </section>
