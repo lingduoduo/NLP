@@ -12,3 +12,6 @@ The Hugging Face Course, by the open source team at Hugging Face
 - language models
 - vector semantics
 - embeddings
+
+
+https://medium.com/nerd-for-tech/aws-knowledge-series-working-with-neptune-database-802415735a8
