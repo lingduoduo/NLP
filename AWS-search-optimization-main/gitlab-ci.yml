@@ -1,0 +1,36 @@
+variables:
+  INCLUDE_ASH:
+    value: 'true'
+    description: If true, runs `ash` scan during the test stage
+  ASH_IMAGE:
+    value: registry.gitlab.aws.dev/dbbegimh/automated-security-helper:latest
+    description: Image tag to use for ASH scanning of the repository
+
+stages:
+- test
+- scan
+
+run_ash_scan:
+  stage: scan
+  tags:
+    - arch:amd64
+  image:
+    name: ${ASH_IMAGE}
+  artifacts:
+    paths:
+      - ash_output
+    when: always
+  rules:
+    - if: $INCLUDE_ASH == 'false'
+      when: never
+    - when: always
+  script:
+    - |-
+      ash \
+        --source-dir "$(pwd)" \
+        --output-dir "$(pwd)/ash_output" || exit 1
+
+sast:
+  stage: test
+include:
+- template: Security/SAST.gitlab-ci.yml
