@@ -1,0 +1,13 @@
+// Jenkinsfile
+@Library(['adp-jenkins', 'wm-jenkins']) _
+​
+pipeline {
+  agent any
+  stages {
+    stage('Check PR') {
+      steps {
+        CheckPullRequest()
+      }
+    }
+  }
+}

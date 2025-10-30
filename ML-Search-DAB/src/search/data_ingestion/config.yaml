@@ -1,0 +1,4 @@
+injection_schedule:
+  is_weekly: true
+  is_monthly: false
+  is_quarterly: false

@@ -1,0 +1,367 @@
+resources:
+  jobs:
+    sdq_data_pipleline_jobs:
+      name: sdq_data_pipleline_jobs
+
+      schedule:
+        quartz_cron_expression: "0 0 8 * * ?" # daily at 8am
+        timezone_id: UTC
+        pause_status: PAUSED
+
+      tasks:
+        - task_key: data_process_task
+          job_cluster_key: sdq_etl_cluster
+          notebook_task:
+            notebook_path: ../src/sdq/data_process.sql
+            source: WORKSPACE
+        - task_key: data_ingestion_task
+          job_cluster_key: sdq_etl_cluster
+          depends_on:
+            - task_key: data_process_task
+          notebook_task:
+            notebook_path: ../src/sdq/data_ingestion.ipynb
+            source: WORKSPACE
+
+      job_clusters:
+        - job_cluster_key: sdq_etl_cluster
+          new_cluster:
+            spark_version: 15.4.x-scala2.12
+            data_security_mode: USER_ISOLATION
+            spark_conf:
+              spark.speculation: "true"
+            aws_attributes:
+              first_on_demand: 1
+              availability: SPOT_WITH_FALLBACK
+              zone_id: auto
+              spot_bid_price_percent: 100
+              ebs_volume_type: GENERAL_PURPOSE_SSD
+              ebs_volume_count: 1
+              ebs_volume_size: 100
+            node_type_id: ${var.node_type_id}
+            enable_elastic_disk: false
+            autoscale:
+              min_workers: 1
+              max_workers: 5
+
+      queue:
+        enabled: true
+
+      parameters:
+        - name: secret_scope
+          default: ${var.secret_scope}
+        - name: ml_catalog
+          default: ${var.ml_catalog}
+        - name: ml_sdq_db
+          default: ${var.ml_sdq_db}
+
+    evaluation_data_pipleline_jobs:
+      name: evaluation_data_pipleline_jobs
+
+      schedule:
+        quartz_cron_expression: "0 0 8 * * ?" # daily at 8am
+        timezone_id: UTC
+        pause_status: PAUSED
+
+      tasks:
+        - task_key: question_answer
+          job_cluster_key: evaluation_cluster_nlp
+          notebook_task: 
+            notebook_path: ../src/evaluation/data_indexing/question_answer_json.ipynb
+            source: WORKSPACE
+          libraries:
+            - pypi:
+                package: httpx
+                repo: https://artifactory.us.caas.oneadp.com/artifactory/api/pypi/pypi/simple
+            - pypi:
+                package: openai
+                repo: https://artifactory.us.caas.oneadp.com/artifactory/api/pypi/pypi/simple
+            - pypi:
+                package: redis
+                repo: https://artifactory.us.caas.oneadp.com/artifactory/api/pypi/pypi/simple
+            - pypi:
+                package: redisvl
+                repo: https://artifactory.us.caas.oneadp.com/artifactory/api/pypi/pypi/simple
+            - pypi:
+                package: umap-learn
+                repo: https://artifactory.us.caas.oneadp.com/artifactory/api/pypi/pypi/simple
+        
+        - task_key: question_answer_kc
+          job_cluster_key: evaluation_cluster_nlp
+          notebook_task: 
+            notebook_path: ../src/evaluation/data_indexing/question_answer_pdf.ipynb
+            source: WORKSPACE
+          libraries:
+            - pypi:
+                package: httpx
+                repo: https://artifactory.us.caas.oneadp.com/artifactory/api/pypi/pypi/simple
+            - pypi:
+                package: openai
+                repo: https://artifactory.us.caas.oneadp.com/artifactory/api/pypi/pypi/simple
+            - pypi:
+                package: redis
+                repo: https://artifactory.us.caas.oneadp.com/artifactory/api/pypi/pypi/simple
+            - pypi:
+                package: redisvl
+                repo: https://artifactory.us.caas.oneadp.com/artifactory/api/pypi/pypi/simple
+            - pypi:
+                package: umap-learn
+                repo: https://artifactory.us.caas.oneadp.com/artifactory/api/pypi/pypi/simple
+            - pypi:
+                package: langchain
+                repo: https://artifactory.us.caas.oneadp.com/artifactory/api/pypi/pypi/simple
+            - pypi:
+                package: langchain_community
+                repo: https://artifactory.us.caas.oneadp.com/artifactory/api/pypi/pypi/simple
+            - pypi:
+                package: pypdf
+                repo: https://artifactory.us.caas.oneadp.com/artifactory/api/pypi/pypi/simple
+
+      job_clusters:
+        - job_cluster_key: evaluation_cluster_nlp
+          new_cluster:
+            spark_version: 15.4.x-cpu-ml-scala2.12
+            aws_attributes:
+              first_on_demand: 1
+              availability: SPOT_WITH_FALLBACK
+              zone_id: auto
+              spot_bid_price_percent: 100
+              ebs_volume_type: GENERAL_PURPOSE_SSD
+              ebs_volume_count: 1
+              ebs_volume_size: 100
+            node_type_id: m5d.xlarge
+            driver_node_type_id: m4.xlarge
+            custom_tags:
+              ADP_Cost_Gen_AI: yes
+            enable_elastic_disk: true
+            enable_local_disk_encryption: false
+            runtime_engine: STANDARD
+            data_security_mode: SINGLE_USER
+            autoscale:
+                min_workers: 1
+                max_workers: 8
+            apply_policy_default_values: false
+
+      queue:
+        enabled: true
+
+      parameters:
+        - name: secret_scope
+          default: ${var.secret_scope}
+        - name: client_secret
+          default: ${var.client_secret}
+        - name: redis_secret
+          default: ${var.redis_secret}
+        - name: ml_catalog
+          default: ${var.ml_catalog}
+        - name: ml_search_db
+          default: ${var.ml_search_db}
+
+
+    search_data_pipleline_jobs:
+      name: search_data_pipleline_jobs
+
+      schedule:
+        quartz_cron_expression: "0 0 8 * * ?" # daily at 8am
+        timezone_id: UTC
+        pause_status: PAUSED
+
+      tasks:
+        - task_key: data_ingestion_task
+          job_cluster_key: job_cluster_etl
+          notebook_task:
+            notebook_path: ../src/search/data_ingestion/weekly_ingestion.ipynb
+            source: WORKSPACE
+
+        - task_key: data_process_task
+          job_cluster_key: job_cluster_etl
+          notebook_task:
+            notebook_path: ../src/search/data_ingestion/data_process.sql
+            source: WORKSPACE
+        
+        - task_key: data_preparation_task
+          job_cluster_key: job_cluster_etl
+          depends_on:
+            - task_key: data_ingestion_task
+            - task_key: data_process_task
+          notebook_task: 
+            notebook_path: ../src/search/data_ingestion/data_preparation.ipynb
+            source: WORKSPACE
+        
+        - task_key: data_exploration_people
+          job_cluster_key: job_cluster_etl
+          depends_on:
+            - task_key: data_preparation_task
+          notebook_task: 
+            notebook_path: ../src/search/data_exploration/people.ipynb
+            source: WORKSPACE
+
+        - task_key: data_exploration_action
+          job_cluster_key: job_cluster_etl
+          depends_on:
+            - task_key: data_preparation_task
+          notebook_task: 
+            notebook_path: ../src/search/data_exploration/action.ipynb
+            source: WORKSPACE
+
+        - task_key: data_exploration_click
+          job_cluster_key: job_cluster_etl
+          depends_on:
+            - task_key: data_preparation_task
+          notebook_task: 
+            notebook_path: ../src/search/data_exploration/click.ipynb
+            source: WORKSPACE
+
+        - task_key: user_profiling
+          job_cluster_key: job_cluster_etl
+          depends_on:
+            - task_key: data_exploration_people
+          notebook_task: 
+            notebook_path: ../src/search/data_profiling/people_query.ipynb
+            source: WORKSPACE
+          libraries:
+            - pypi:
+                package: httpx
+                repo: https://artifactory.us.caas.oneadp.com/artifactory/api/pypi/pypi/simple
+            - pypi:
+                package: openai
+                repo: https://artifactory.us.caas.oneadp.com/artifactory/api/pypi/pypi/simple
+            - pypi:
+                package: umap-learn
+                repo: https://artifactory.us.caas.oneadp.com/artifactory/api/pypi/pypi/simple
+            - pypi:
+                package: hdbscan
+                repo: https://artifactory.us.caas.oneadp.com/artifactory/api/pypi/pypi/simple
+
+        - task_key: action_profiling
+          job_cluster_key: job_cluster_nlp
+          depends_on:
+            - task_key: data_exploration_action
+          notebook_task: 
+            notebook_path: ../src/search/data_profiling/action_query.ipynb
+            source: WORKSPACE
+          libraries:
+            - pypi:
+                package: nltk
+                repo: https://artifactory.us.caas.oneadp.com/artifactory/api/pypi/pypi/simple
+            - pypi:
+                package: rank_bm25
+                repo: https://artifactory.us.caas.oneadp.com/artifactory/api/pypi/pypi/simple
+            - pypi:
+                package: openai
+                repo: https://artifactory.us.caas.oneadp.com/artifactory/api/pypi/pypi/simple
+            - pypi:
+                package: redis
+                repo: https://artifactory.us.caas.oneadp.com/artifactory/api/pypi/pypi/simple
+            - pypi:
+                package: redisvl
+                repo: https://artifactory.us.caas.oneadp.com/artifactory/api/pypi/pypi/simple
+            - pypi:
+                package: umap-learn
+                repo: https://artifactory.us.caas.oneadp.com/artifactory/api/pypi/pypi/simple
+
+        - task_key: intent_classifier
+          job_cluster_key: job_cluster_nlp
+          depends_on:
+            - task_key: user_profiling
+            - task_key: action_profiling
+          notebook_task: 
+            notebook_path: ../src/search/modeling_tasks/intent_classifier.ipynb
+            source: WORKSPACE
+          libraries:
+            - pypi:
+                package: Levenshtein
+                repo: https://artifactory.us.caas.oneadp.com/artifactory/api/pypi/pypi/simple
+            - pypi:
+                package: spacy
+                repo: https://artifactory.us.caas.oneadp.com/artifactory/api/pypi/pypi/simple
+
+        - task_key: action_auto_complete
+          job_cluster_key: job_cluster_nlp
+          depends_on:
+            - task_key: user_profiling
+            - task_key: action_profiling
+          notebook_task: 
+            notebook_path: ../src/search/modeling_tasks/action_auto_complete.ipynb
+            source: WORKSPACE
+          libraries:
+            - pypi:
+                package: redis
+                repo: https://artifactory.us.caas.oneadp.com/artifactory/api/pypi/pypi/simple
+            - pypi:
+                package: nltk
+                repo: https://artifactory.us.caas.oneadp.com/artifactory/api/pypi/pypi/simple
+
+        - task_key: cold_start_recommender
+          job_cluster_key: job_cluster_etl
+          depends_on:
+            - task_key: user_profiling
+            - task_key: action_profiling
+          notebook_task: 
+            notebook_path: ../src/search/modeling_tasks/cold_start_recommender.ipynb
+            source: WORKSPACE
+
+      job_clusters:
+        - job_cluster_key: job_cluster_etl
+          new_cluster:
+            spark_version: 15.4.x-scala2.12
+            data_security_mode: USER_ISOLATION
+            spark_conf:
+              spark.speculation: "true"
+            aws_attributes:
+              first_on_demand: 1
+              availability: SPOT_WITH_FALLBACK
+              zone_id: auto
+              spot_bid_price_percent: 100
+              ebs_volume_type: GENERAL_PURPOSE_SSD
+              ebs_volume_count: 1
+              ebs_volume_size: 100
+            node_type_id: ${var.node_type_id}
+            enable_elastic_disk: false
+            autoscale:
+              min_workers: 1
+              max_workers: 5
+
+        - job_cluster_key: job_cluster_nlp
+          new_cluster:
+            spark_version: 15.4.x-cpu-ml-scala2.12
+            aws_attributes:
+              first_on_demand: 1
+              availability: SPOT_WITH_FALLBACK
+              zone_id: auto
+              spot_bid_price_percent: 100
+              ebs_volume_type: GENERAL_PURPOSE_SSD
+              ebs_volume_count: 1
+              ebs_volume_size: 100
+            node_type_id: m5d.xlarge
+            driver_node_type_id: m4.xlarge
+            custom_tags:
+              ADP_Cost_Gen_AI: yes
+            enable_elastic_disk: true
+            enable_local_disk_encryption: false
+            runtime_engine: STANDARD
+            data_security_mode: SINGLE_USER
+            autoscale:
+                min_workers: 1
+                max_workers: 8
+            apply_policy_default_values: false
+
+      queue:
+        enabled: true
+
+      parameters:
+        - name: secret_scope
+          default: ${var.secret_scope}
+        - name: client_secret
+          default: ${var.client_secret}
+        - name: redis_secret
+          default: ${var.redis_secret}
+        - name: ml_catalog
+          default: ${var.ml_catalog}
+        - name: ml_search_db
+          default: ${var.ml_search_db}
+        - name: ml_search_volume
+          default: ${var.ml_search_volume}
+        - name: ml_search_click_volume
+          default: ${var.ml_search_click_volume}
+        - name: ml_search_mobile_events_volume
+          default: ${var.ml_search_mobile_events_volume}

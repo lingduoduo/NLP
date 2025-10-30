@@ -1,0 +1,10 @@
+{  
+    "version": "0.0.1",
+    "deploy-mode": "repos",
+    "databricks-group":"nas-lifion_ml-sdq",
+    "tags": {
+        "Application": "nas-lifion_ml-sdq",
+        "experimental": "true",
+        "project-phase": "live"
+    }
+}

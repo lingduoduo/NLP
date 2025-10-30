@@ -1,0 +1,78 @@
+bundle:
+  name: lifion_search_etl
+ 
+include:
+  - resources/*.yml # what files to run.
+ 
+# Default variables defined here for FIT environment , u will declare varaiable that are environment specific, example, arn name, scope name, catalog name and autoscaling parameters
+variables:
+  max_workers:
+    description: max workers
+    default: "5"
+  secret_scope:
+    description: scope
+    default: dit-nas-lifion_ml-sdq
+  client_secret:
+    description: client secret
+    default: k9-8Q~xFbsBnXtyDzj0lDnRl9BomhghHjaZQtdfK
+  redis_secret:
+    description: redis secret
+    default: fZq7XT1c
+  node_type_id:
+    description: node type ID
+    default: r6g.xlarge
+  ml_catalog:
+    description: catalog for lifion ml data in one data
+    default: onedata_us_east_1_shared_dit 
+  ml_search_db:
+    description: db for search data in one data
+    default: nas_raw_lyric_search_dit
+  ml_search_volume:
+    description: volume for seach web event volume
+    default: nas_raw_lyric_search_dit_events_volume
+  ml_search_click_volume:
+    description: volume for seach click event volume
+    default: nas_raw_lyric_search_dit_web_events_button_volume
+  ml_search_mobile_events_volume: 
+    description: volume for seach mobile event volume
+    default: nas_raw_lyric_search_dit_mobile_events_volume
+  ml_sdq_db:
+    description: db for sdq data in one data
+    default: nas_raw_lifion_dit
+
+targets:
+  dev:
+    mode: development
+    default: true
+    workspace:
+      host: https://adpdc-share1-dev.cloud.databricks.com
+    variables: 
+      max_workers: 10
+      secret_scope: dit-nas-lifion_ml-sdq
+      client_secret: k9-8Q~xFbsBnXtyDzj0lDnRl9BomhghHjaZQtdfK
+      redis_secret: fZq7XT1c
+      node_type_id: r6g.xlarge
+      ml_catalog: onedata_us_east_1_shared_dit
+      ml_search_db: nas_raw_lyric_search_dit
+      ml_search_volume: nas_raw_lyric_search_dit_events_volume
+      ml_search_click_volume: nas_raw_lyric_search_dit_web_events_button_volume
+      ml_search_mobile_events_volume: nas_raw_lyric_search_dit_mobile_events_volume
+      ml_sdq_db: nas_raw_lifion_dit
+
+  prod:
+    mode: development
+    default: false
+    workspace:
+      host: https://adpdc-share1-prod.cloud.databricks.com
+    variables: 
+      max_workers: 10
+      secret_scope: prod-nas-lifion_ml-sdq
+      client_secret: k9-8Q~xFbsBnXtyDzj0lDnRl9BomhghHjaZQtdfK
+      redis_secret: fZq7XT1c
+      node_type_id: r6g.xlarge
+      ml_catalog: onedata_us_east_1_shared_prod
+      ml_search_db: nas_raw_lyric_search_prod
+      ml_search_volume: nas_raw_lyric_search_prod_web_events_volume
+      ml_search_click_volume: nas_raw_lyric_search_prod_web_events_button_volume
+      ml_search_mobile_events_volume: nas_raw_lyric_search_prod_mobile_events_volume
+      ml_sdq_db: nas_raw_lifion_prod
