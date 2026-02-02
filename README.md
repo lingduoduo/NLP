@@ -1,4 +1,12 @@
+Document Intelligence + Multimodal Processing
+Intelligent document processing for construction.
+- OCR, table extraction
+- Entity extraction
+- LayoutLM / Donut / multimodal transformers
+- Graph‑based document linking
+- Domain adaptation
 
+  
 
 NLP with Transformers
 
